@@ -1,8 +1,2067 @@
 <!doctype html>
-<html lang="bn"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Routine App</title></head>
-<body style="font-family:system-ui;padding:2rem;text-align:center">
-<h1>Routine App</h1>
-<p>প্রস্তুত। অ্যাপের ফাইল এখানে বসানো হবে।</p>
-</body></html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>InflowMap</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============ DESIGN TOKENS ============ */
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --font:"Hind Siliguri","Noto Sans Bengali","Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+  /* color: light */
+  --bg:#F4F5F9; --surface:#FFFFFF; --surface-2:#EDEFF5; --border:#E1E4EC; --border-strong:#C3C9D8;
+  --text:#14192B; --text-2:#4A5370; --text-3:#78809A;
+  --primary:#34468A; --primary-contrast:#FFFFFF; --primary-soft:#E7EAF8;
+  --accent:#D9962B; --accent-soft:#FBF0DC; --accent-ink:#85570A;
+  --success:#3B8663; --success-soft:#E2F1EA; --danger:#B8433A; --danger-soft:#F8E6E4;
+  --overlay:rgba(12,16,28,.45);
+  /* type */
+  --fs-title:28px; --fs-section:15px; --fs-body:16px; --fs-task:16px; --fs-sec:14px; --fs-meta:12.5px;
+  /* space */
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:20px; --s6:24px; --s8:32px;
+  /* radii */
+  --r-sm:8px; --r-md:12px; --r-lg:16px; --r-xl:20px; --r-full:999px;
+  /* elevation */
+  --shadow-1:0 1px 2px rgba(20,25,43,.05);
+  --shadow-sheet:0 -8px 32px rgba(12,16,28,.18);
+  /* sizes */
+  --btn-h:44px; --input-h:46px; --icon:22px; --nav-h:60px; --bar-h:112px; --tap:44px;
+  /* motion */
+  --dur-1:120ms; --dur-2:220ms; --dur-3:420ms; --ease:cubic-bezier(.2,.8,.2,1);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0D1017; --surface:#151923; --surface-2:#1D2230; --border:#262C3D; --border-strong:#3A4260;
+    --text:#E8EBF4; --text-2:#A8B0C7; --text-3:#7C849C;
+    --primary:#90A2F3; --primary-contrast:#0D1017; --primary-soft:#1C2345;
+    --accent:#E7AF4D; --accent-soft:#33291A; --accent-ink:#F0C57A;
+    --success:#5BB68D; --success-soft:#1A2E27; --danger:#E67D72; --danger-soft:#3A2220;
+    --overlay:rgba(0,0,0,.6); --shadow-1:none; --shadow-sheet:0 -8px 32px rgba(0,0,0,.5);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0D1017; --surface:#151923; --surface-2:#1D2230; --border:#262C3D; --border-strong:#3A4260;
+  --text:#E8EBF4; --text-2:#A8B0C7; --text-3:#7C849C;
+  --primary:#90A2F3; --primary-contrast:#0D1017; --primary-soft:#1C2345;
+  --accent:#E7AF4D; --accent-soft:#33291A; --accent-ink:#F0C57A;
+  --success:#5BB68D; --success-soft:#1A2E27; --danger:#E67D72; --danger-soft:#3A2220;
+  --overlay:rgba(0,0,0,.6); --shadow-1:none; --shadow-sheet:0 -8px 32px rgba(0,0,0,.5);
+}
+:root[data-theme="light"]{color-scheme:light}
+
+/* ============ BASE ============ */
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);font-size:var(--fs-body);line-height:1.5;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+h1,h2,h3,p{margin:0}
+button{font:inherit;color:inherit;cursor:pointer}
+input,textarea,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:6px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+svg.ic{display:block;flex:none}
+#app{max-width:600px;margin:0 auto;padding:0 var(--s4) calc(var(--nav-h) + var(--s8) + env(safe-area-inset-bottom,0px))}
+#view{outline:none}
+
+/* ============ NAV ============ */
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--surface);border-top:1px solid var(--border);padding-bottom:env(safe-area-inset-bottom,0px)}
+.nav-in{max-width:600px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr);height:var(--nav-h)}
+.nav button{background:none;border:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--text-3);font-size:12px;font-weight:500;min-height:var(--tap);transition:color var(--dur-1)}
+.nav button[aria-current="page"]{color:var(--primary);font-weight:600}
+@media (min-width:900px){
+  .nav{top:0;right:auto;width:96px;border-top:0;border-right:1px solid var(--border);padding-top:env(safe-area-inset-top,0px)}
+  .nav-in{display:flex;flex-direction:column;height:auto;padding-top:24px;gap:8px}
+  .nav button{height:64px}
+  #app{padding-bottom:var(--s8)}
+}
+
+/* ============ TYPOGRAPHY ============ */
+.page-head{padding:var(--s6) 0 var(--s4)}
+.greet{font-size:var(--fs-sec);color:var(--text-2)}
+.title{font-size:var(--fs-title);line-height:1.25;font-weight:700;letter-spacing:-.01em;margin-top:2px}
+.sub{font-size:var(--fs-sec);color:var(--text-3)}
+.h2{font-size:var(--fs-section);font-weight:600;color:var(--text-2);margin:var(--s6) 0 var(--s2)}
+.muted{color:var(--text-3);font-size:var(--fs-sec)}
+
+/* ============ BUTTONS ============ */
+.btn{height:var(--btn-h);padding:0 var(--s5);border-radius:var(--r-md);border:1px solid transparent;font-size:15px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:var(--s2);transition:transform var(--dur-1),background var(--dur-1),opacity var(--dur-1)}
+.btn:active:not(:disabled){transform:scale(.98)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-primary{background:var(--primary);color:var(--primary-contrast)}
+.btn-quiet{background:var(--surface-2);color:var(--text)}
+.btn-danger{background:var(--danger-soft);color:var(--danger)}
+.btn.block{width:100%}
+.icon-btn{width:var(--tap);height:var(--tap);border-radius:var(--r-md);border:0;background:none;display:grid;place-items:center;color:var(--text-2)}
+.icon-btn:active{background:var(--surface-2)}
+.chip-btn{height:40px;padding:0 12px;border-radius:var(--r-full);border:1px solid var(--border);background:var(--surface);font-size:14px;font-weight:600;display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.chip-btn.primary{background:var(--primary);border-color:var(--primary);color:var(--primary-contrast)}
+.chip-btn:disabled{opacity:.55;cursor:not-allowed}
+.chip-btn:active:not(:disabled){transform:scale(.97)}
+.soon{font-size:11px;font-weight:500;color:var(--text-3)}
+.tag{font-size:12px;font-weight:600;padding:1px 8px;border-radius:var(--r-full);background:var(--accent-soft);color:var(--accent-ink);white-space:nowrap}
+.tag.mute{background:var(--surface-2);color:var(--text-2)}
+
+/* ============ CARDS / HOME ============ */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-1)}
+.prog{padding:var(--s4) var(--s5)}
+.prog-row{display:flex;align-items:baseline;gap:var(--s3)}
+.pct{font-size:40px;font-weight:700;line-height:1.1;font-variant-numeric:tabular-nums}
+.prog-text{font-size:15px;color:var(--text-2)}
+.bar{height:6px;border-radius:3px;background:var(--surface-2);margin-top:var(--s3);overflow:hidden}
+.bar span{display:block;height:100%;border-radius:3px;background:var(--primary);width:0;transition:width var(--dur-3) var(--ease),background var(--dur-2)}
+.bar.full span{background:var(--success)}
+.quick{display:flex;flex-wrap:wrap;gap:6px;margin:var(--s4) 0 var(--s2)}
+.notice{margin-top:var(--s3);padding:var(--s3) var(--s4);border-radius:var(--r-md);background:var(--accent-soft);color:var(--accent-ink);font-size:var(--fs-sec)}
+
+.list-card{padding:var(--s1) var(--s4) var(--s2)}
+.subj{padding:var(--s1) 0}
+.subj+.subj{border-top:1px solid var(--border);margin-top:var(--s1)}
+.subj-name{font-size:13px;font-weight:600;color:var(--text-2);margin:var(--s2) 0 0}
+.task{display:flex;align-items:center;gap:2px;min-height:52px;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+.chk{width:var(--tap);height:var(--tap);flex:none;display:grid;place-items:center;background:none;border:0;margin-left:-10px}
+.chk i{width:22px;height:22px;border-radius:7px;border:2px solid var(--border-strong);display:grid;place-items:center;color:transparent;transition:background var(--dur-2),border-color var(--dur-2),color var(--dur-2),transform var(--dur-2) var(--ease)}
+.chk:active i{transform:scale(.9)}
+.task.done .chk i{background:var(--success);border-color:var(--success);color:#fff}
+.task-main{flex:1;min-width:0;padding:var(--s2) 0;display:flex;flex-direction:column}
+.task-title{font-size:var(--fs-task);font-weight:500;line-height:1.45;overflow-wrap:anywhere;transition:color var(--dur-2)}
+.task.done .task-title{color:var(--text-3);text-decoration:line-through;text-decoration-color:var(--text-3)}
+.task-meta{font-size:var(--fs-meta);color:var(--text-3);display:flex;gap:var(--s3);flex-wrap:wrap}
+.kebab{width:var(--tap);height:var(--tap);flex:none;background:none;border:0;color:var(--text-3);display:grid;place-items:center;border-radius:var(--r-md);margin-right:-10px}
+.kebab:active{background:var(--surface-2)}
+.completed-head{display:flex;align-items:center;gap:var(--s2);width:100%;background:none;border:0;padding:var(--s4) 0 var(--s2);font-size:var(--fs-sec);font-weight:600;color:var(--text-2);min-height:var(--tap)}
+.completed-head .ic{transition:transform var(--dur-2)}
+.completed-head[aria-expanded="true"] .ic{transform:rotate(180deg)}
+.empty{text-align:center;padding:72px var(--s4) var(--s6)}
+.empty h2{font-size:22px;font-weight:700}
+.empty p{color:var(--text-2);margin:var(--s2) 0 var(--s5)}
+
+/* ============ ROUTINE ============ */
+.rt-bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:10;background:var(--bg);padding:var(--s2) 0 var(--s3)}
+.rt-top{display:flex;align-items:center;gap:var(--s2);min-height:48px}
+.rt-title{flex:1;min-width:0;display:flex;align-items:center;gap:6px;background:none;border:0;padding:0;text-align:left;font-size:22px;font-weight:700;letter-spacing:-.01em;min-height:var(--tap)}
+.rt-title span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.seg{display:flex;background:var(--surface-2);border-radius:var(--r-md);padding:3px;gap:2px}
+.seg button{flex:1;height:38px;border:0;background:none;border-radius:10px;font-size:14.5px;font-weight:600;color:var(--text-2);transition:background var(--dur-2),color var(--dur-2)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--text);box-shadow:var(--shadow-1)}
+.trail{padding-top:var(--s2)}
+.dayw{position:relative;padding:0 0 var(--s3) 28px;scroll-margin-top:calc(var(--bar-h) + 8px)}
+.trail.cv .dayw{content-visibility:auto;contain-intrinsic-size:auto 170px}
+.dayw::before{content:"";position:absolute;left:9px;top:0;bottom:0;width:2px;background:var(--border)}
+.dayw:first-child::before{top:26px}
+.dayw:last-child::before{bottom:auto;height:26px}
+.dayw:only-child::before{display:none}
+.node{position:absolute;left:3px;top:20px;width:14px;height:14px;border-radius:50%;background:var(--bg);border:2px solid var(--border-strong);transition:background var(--dur-2),border-color var(--dur-2)}
+.dayw.is-complete .node{background:var(--success);border-color:var(--success)}
+.dayw.is-today .node{background:var(--accent);border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
+.day{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-1);overflow:hidden}
+.day.today{border-color:var(--accent)}
+.dayw.flash .day{animation:flash 1.4s var(--ease)}
+@keyframes flash{0%{box-shadow:0 0 0 0 var(--accent)}30%{box-shadow:0 0 0 4px var(--accent-soft)}100%{box-shadow:0 0 0 0 transparent}}
+.day-head{display:flex;align-items:center;gap:var(--s3);width:100%;min-height:52px;padding:var(--s2) var(--s4);background:none;border:0;text-align:left}
+.day-title{font-size:15px;font-weight:700}
+.day-date{font-size:13px;color:var(--text-3)}
+.day-prog{margin-left:auto;display:flex;align-items:center;gap:4px;font-size:13px;color:var(--text-2);font-variant-numeric:tabular-nums}
+.day.complete .day-prog{color:var(--success);font-weight:600}
+.day-head .chev{color:var(--text-3);transition:transform var(--dur-2) var(--ease)}
+.day.open .day-head .chev{transform:rotate(180deg)}
+.day-body{display:grid;grid-template-rows:0fr;visibility:hidden;transition:grid-template-rows var(--dur-2) var(--ease),visibility 0s linear var(--dur-2)}
+.day.open .day-body{grid-template-rows:1fr;visibility:visible;transition:grid-template-rows var(--dur-2) var(--ease),visibility 0s}
+.day-clip{overflow:hidden;min-height:0}
+.day-content{padding:0 var(--s4) var(--s1)}
+.empty-day{font-size:var(--fs-sec);color:var(--text-3);padding:var(--s2) 0}
+.add-inline{display:flex;align-items:center;gap:6px;width:calc(100% + 2*var(--s4));margin:var(--s1) calc(-1*var(--s4)) 0;padding:0 var(--s4);height:var(--tap);background:none;border:0;border-top:1px solid var(--border);color:var(--primary);font-size:14.5px;font-weight:600;text-align:left}
+.fab-today{position:fixed;right:var(--s4);bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + var(--s4));z-index:20;height:var(--btn-h);padding:0 var(--s5);border-radius:var(--r-full);border:0;background:var(--primary);color:var(--primary-contrast);font-weight:600;box-shadow:0 4px 16px rgba(12,16,28,.25);opacity:0;transform:translateY(8px);pointer-events:none;transition:opacity var(--dur-2),transform var(--dur-2) var(--ease)}
+.fab-today.show{opacity:1;transform:none;pointer-events:auto}
+@media (min-width:900px){.fab-today{bottom:var(--s6)}}
+
+/* ============ PROGRESS / MORE ============ */
+.stat-list{padding:0 var(--s4)}
+.stat{display:flex;justify-content:space-between;align-items:center;min-height:48px;border-top:1px solid var(--border);font-size:15px}
+.stat:first-child{border-top:0}
+.stat b{font-variant-numeric:tabular-nums}
+.subj-row{padding:var(--s3) 0;border-top:1px solid var(--border)}
+.subj-row:first-child{border-top:0}
+.subj-row .top{display:flex;justify-content:space-between;gap:var(--s3);font-size:15px}
+.subj-row .top b{font-variant-numeric:tabular-nums}
+.subj-row .bar{margin-top:var(--s2)}
+.subj-row small{color:var(--text-3);font-size:var(--fs-meta)}
+.streak{display:flex;align-items:center;gap:var(--s3);padding:var(--s4) var(--s5)}
+.streak .ic{color:var(--accent)}
+.streak b{font-size:20px}
+.miles{display:flex;gap:var(--s2);margin-top:var(--s2)}
+.mile{font-size:12.5px;font-weight:600;padding:2px 10px;border-radius:var(--r-full);border:1px solid var(--border);color:var(--text-3)}
+.mile.hit{background:var(--accent-soft);border-color:transparent;color:var(--accent-ink)}
+.group{padding:0 var(--s4)}
+.row{display:flex;align-items:center;gap:var(--s3);width:100%;min-height:56px;background:none;border:0;border-top:1px solid var(--border);text-align:left;padding:var(--s2) 0}
+.row:first-child{border-top:0}
+.row-main{flex:1;min-width:0;display:flex;flex-direction:column}
+.row-title{font-size:15.5px;font-weight:500;overflow-wrap:anywhere}
+.row-sub{font-size:var(--fs-meta);color:var(--text-3)}
+.row:disabled{opacity:.6;cursor:default}
+.row.danger .row-title{color:var(--danger)}
+.row-tags{display:flex;gap:6px;flex:none}
+.inline-input{width:100%;height:var(--input-h);border:1px solid var(--border);border-radius:var(--r-md);background:var(--surface);padding:0 var(--s3);font-size:16px}
+
+/* ============ SHEETS / FORMS ============ */
+.overlay{position:fixed;inset:0;z-index:50;background:transparent;transition:background var(--dur-2)}
+.overlay.open{background:var(--overlay)}
+.sheet{position:absolute;left:0;right:0;bottom:0;max-width:560px;margin:0 auto;background:var(--surface);border-radius:var(--r-xl) var(--r-xl) 0 0;box-shadow:var(--shadow-sheet);padding:var(--s2) var(--s4) calc(var(--s4) + env(safe-area-inset-bottom,0px));max-height:90dvh;overflow:auto;overscroll-behavior:contain;transform:translateY(100%);transition:transform 280ms var(--ease);outline:none}
+.overlay.open .sheet{transform:none}
+.grab{width:36px;height:4px;border-radius:2px;background:var(--border-strong);margin:4px auto var(--s3)}
+.sh-title{font-size:19px;font-weight:700;margin-bottom:2px;overflow-wrap:anywhere}
+.sh-sub{font-size:var(--fs-sec);color:var(--text-3);margin-bottom:var(--s3);overflow-wrap:anywhere}
+.menu-item{display:flex;align-items:center;gap:var(--s3);width:100%;height:52px;background:none;border:0;border-top:1px solid var(--border);font-size:16px;font-weight:500;text-align:left}
+.menu-item:first-of-type{border-top:0}
+.menu-item .ic{color:var(--text-2)}
+.menu-item.danger,.menu-item.danger .ic{color:var(--danger)}
+.fld{display:block;margin-top:var(--s3)}
+.fld>span{display:block;font-size:13px;font-weight:600;color:var(--text-2);margin-bottom:6px}
+.fld input,.fld textarea{width:100%;height:var(--input-h);border:1px solid var(--border-strong);border-radius:var(--r-md);background:var(--surface);padding:0 var(--s3);font-size:16px}
+.fld textarea{height:auto;min-height:170px;padding:var(--s3);line-height:1.5;resize:vertical}
+.fld input:focus,.fld textarea:focus,.inline-input:focus{outline:2px solid var(--primary);outline-offset:0;border-color:transparent}
+.hint{display:block;font-size:var(--fs-meta);color:var(--text-3);margin-top:6px}
+.err{font-size:var(--fs-sec);color:var(--danger);margin-top:var(--s3)}
+.chips{display:flex;flex-wrap:wrap;gap:var(--s2);margin-top:var(--s2)}
+.chip{height:36px;padding:0 12px;border-radius:var(--r-full);border:1px solid var(--border);background:var(--surface-2);font-size:14px;font-weight:500}
+.chip[aria-pressed="true"]{background:var(--primary-soft);border-color:var(--primary);color:var(--primary)}
+.more{margin-top:var(--s3)}
+.more summary{min-height:var(--tap);display:flex;align-items:center;font-size:14px;font-weight:600;color:var(--text-2);cursor:pointer}
+.actions{display:flex;gap:var(--s2);margin-top:var(--s5)}
+.actions .btn{flex:1}
+.check{display:flex;align-items:center;gap:var(--s3);min-height:var(--tap);margin-top:var(--s2);font-size:15px}
+.check input{width:20px;height:20px;accent-color:var(--primary)}
+.sheet .seg{margin-top:var(--s3)}
+.jump-row{display:flex;gap:var(--s2);align-items:flex-end}
+.jump-row .fld{flex:1;margin-top:var(--s3)}
+.jump-row .btn{margin-bottom:0}
+.code{width:100%;min-height:220px;border:1px solid var(--border-strong);border-radius:var(--r-md);background:var(--surface-2);padding:var(--s3);font:12.5px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--text)}
+
+/* ============ TOAST ============ */
+#toast{position:fixed;left:50%;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + var(--s3));transform:translate(-50%,12px);z-index:60;max-width:min(92vw,440px);display:flex;align-items:center;gap:var(--s3);padding:var(--s3) var(--s4);border-radius:var(--r-md);background:var(--text);color:var(--bg);font-size:14.5px;opacity:0;pointer-events:none;transition:opacity var(--dur-2),transform var(--dur-2) var(--ease)}
+#toast.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+#toast button{background:none;border:0;color:var(--accent);font-weight:700;padding:0 4px;min-height:32px}
+:root[data-theme="dark"] #toast button{color:var(--primary-contrast)}
+@media (min-width:900px){#toast{bottom:var(--s6)}}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{transition-duration:.01ms!important;animation-duration:.01ms!important;scroll-behavior:auto!important}
+}
+
+/* ============ AI WORKSPACE REDESIGN ============ */
+.ai-workspace{min-height:calc(100vh - 30px);display:flex;flex-direction:column;padding:10px 0 18px}
+.ai-topbar{display:flex;align-items:center;gap:12px;padding:10px 0 16px;position:sticky;top:0;z-index:8;background:linear-gradient(var(--bg) 80%,transparent)}
+.ai-topbar .title{font-size:25px}.ai-brand{display:flex;align-items:center;gap:10px;min-width:0}.ai-orb{width:38px;height:38px;border-radius:14px;background:linear-gradient(135deg,#5d6ff0,#8f6de7);color:#fff;display:grid;place-items:center;box-shadow:0 8px 22px rgba(93,111,240,.26)}
+.ai-top-actions{margin-left:auto;display:flex;gap:4px}.ai-status{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-3);background:var(--surface);border:1px solid var(--border);padding:6px 10px;border-radius:999px}.ai-status i{width:7px;height:7px;border-radius:50%;background:var(--success)}
+.ai-shell{display:grid;grid-template-columns:220px minmax(0,1fr);gap:16px;flex:1}.ai-drawer{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:12px;height:max-content;position:sticky;top:74px;box-shadow:var(--shadow-1)}
+.ai-new{width:100%;border:0;background:linear-gradient(135deg,var(--primary),#6677d8);color:#fff;border-radius:13px;padding:11px 12px;font-weight:700}.ai-drawer-nav{display:grid;gap:4px;margin-top:16px}.ai-drawer-nav button{border:0;background:transparent;text-align:left;border-radius:11px;padding:10px 11px;color:var(--text-2);display:flex;align-items:center;gap:9px;font-size:14px}.ai-drawer-nav button:hover,.ai-drawer-nav button.active{background:var(--primary-soft);color:var(--primary);font-weight:700}.ai-capabilities{border-top:1px solid var(--border);margin-top:15px;padding-top:13px}.ai-capabilities p{font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}.ai-capabilities span{display:inline-flex;font-size:11px;background:var(--surface-2);padding:5px 8px;border-radius:999px;margin:0 4px 5px 0;color:var(--text-2)}
+.ai-main{min-width:0;display:flex;flex-direction:column}.ai-hero{background:radial-gradient(circle at 85% 0,#eef0ff 0,transparent 42%),var(--surface);border:1px solid var(--border);border-radius:22px;padding:20px;margin-bottom:14px}.ai-hero h2{font-size:22px;line-height:1.25}.ai-hero p{color:var(--text-2);font-size:14px;margin-top:5px}.ai-quick{display:flex;flex-wrap:wrap;gap:8px;margin-top:15px}.ai-quick button{border:1px solid var(--border);background:var(--surface);border-radius:999px;padding:8px 12px;color:var(--text-2);font-size:13px}.ai-quick button:hover{border-color:var(--primary);color:var(--primary)}
+.msgs{display:flex;flex-direction:column;gap:16px;padding:4px 2px 122px}.msg{max-width:92%;font-size:15px;line-height:1.68}.msg.user{align-self:flex-end;background:linear-gradient(135deg,var(--primary),#6576dc);color:#fff;padding:12px 15px;border-radius:18px 18px 5px 18px;box-shadow:0 8px 18px rgba(52,70,138,.16)}.msg.ai{align-self:flex-start;background:var(--surface);border:1px solid var(--border);padding:15px 17px;border-radius:5px 18px 18px 18px;box-shadow:var(--shadow-1);max-width:100%}.msg.ai p{margin:0 0 8px}.msg.ai p:last-child{margin-bottom:0}.msg.ai ul{margin:7px 0;padding-left:22px}.msg.err{background:var(--danger-soft);color:var(--danger);padding:12px 14px;border-radius:14px}.ai-card{margin-top:13px;border-radius:15px;border:1px solid var(--border);box-shadow:none;padding:14px;background:var(--surface-2)}.ai-title{font-weight:700;color:var(--primary);font-size:13px;text-transform:none}.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:13px}.actions .btn{height:38px;font-size:13px}.composer{position:sticky;bottom:10px;z-index:5;margin-top:auto}.composer form{display:flex;align-items:flex-end;gap:8px;background:var(--surface);border:1px solid var(--border-strong);border-radius:18px;padding:9px;box-shadow:0 10px 28px rgba(20,25,43,.12)}.composer textarea{flex:1;border:0;outline:0;resize:none;background:transparent;min-height:24px;max-height:130px;padding:5px 3px;line-height:1.5}.composer .btn{width:42px;height:42px;border-radius:13px;padding:0}.composer-tools{display:flex;align-items:center;gap:4px;padding:0 3px 3px}.composer-tool{width:33px;height:33px;border:0;background:transparent;border-radius:10px;color:var(--text-2);display:grid;place-items:center}.composer-tool:hover{background:var(--surface-2);color:var(--primary)}.attachment-strip{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:7px}.attachment-chip{display:inline-flex;align-items:center;gap:6px;background:var(--primary-soft);color:var(--primary);border-radius:10px;padding:6px 9px;font-size:12px}.attachment-chip button{border:0;background:transparent;color:inherit;padding:0}.ctx{display:inline-flex;align-items:center;gap:4px;background:var(--accent-soft);color:var(--accent-ink);border-radius:999px;padding:5px 9px;font-size:12px;margin-bottom:7px}.ctx button{border:0;background:transparent;color:inherit;padding:0}
+.ai-settings-sheet{max-width:760px!important}.ai-settings-intro{background:linear-gradient(135deg,var(--primary-soft),var(--surface));border-radius:16px;padding:14px;margin-bottom:15px}.ai-settings-intro b{font-size:17px}.ai-settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.ai-provider-card{border:1px solid var(--border);border-radius:16px;padding:14px;background:var(--surface)}.ai-provider-card.active{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-soft)}.ai-provider-head{display:flex;align-items:center;gap:9px}.ai-provider-head b{flex:1}.ai-provider-dot{width:9px;height:9px;border-radius:50%;background:var(--text-3)}.ai-provider-dot.on{background:var(--success);box-shadow:0 0 0 4px var(--success-soft)}.ai-model-line{display:flex;gap:7px}.ai-model-line input{flex:1}.ai-mode-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}.ai-mode-tabs label{border:1px solid var(--border);border-radius:14px;padding:12px;cursor:pointer}.ai-mode-tabs label:has(input:checked){border-color:var(--primary);background:var(--primary-soft)}.ai-mode-tabs input{accent-color:var(--primary)}.ai-setting-section{border-top:1px solid var(--border);padding-top:14px;margin-top:16px}.ai-setting-section h3{font-size:15px;margin-bottom:4px}.ai-setting-section p{font-size:12px;color:var(--text-3)}.ai-toggle-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:14px}.ai-toggle-row input{width:18px;height:18px;accent-color:var(--primary)}
+@media(max-width:899px){#app{max-width:760px}.ai-shell{display:block}.ai-drawer{display:none}.ai-settings-grid{grid-template-columns:1fr}.ai-hero{padding:17px}.ai-topbar{padding-top:5px}.msg{max-width:96%}}
+</style>
+<style>
+/* ===== Phases 4–7 ===== */
+.page-head{position:relative}
+.head-search{position:absolute;right:-10px;top:14px}
+.day-foot{display:flex;border-top:1px solid var(--border);margin:var(--s1) calc(-1*var(--s4)) 0}
+.day-foot .add-inline{width:auto;flex:1;margin:0;border-top:0}
+.day-foot .add-inline+.add-inline{flex:none;border-left:1px solid var(--border);color:var(--text-2)}
+.fld select{width:100%;height:var(--input-h);border:1px solid var(--border-strong);border-radius:var(--r-md);background:var(--surface);padding:0 var(--s3);font-size:16px}
+.center{text-align:center}
+
+/* full-screen pages (notes) */
+.page{position:fixed;inset:0;z-index:40;background:var(--bg);overflow:auto;overscroll-behavior:contain;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.page-in{max-width:600px;margin:0 auto;padding:0 var(--s4) var(--s8)}
+.page-bar{position:sticky;top:0;z-index:2;background:var(--bg);display:flex;align-items:center;gap:var(--s2);min-height:56px}
+.page-bar h1{flex:1;font-size:20px;font-weight:700}
+.page-bar .icon-btn:first-child{margin-left:-10px}
+.note-card{display:block;width:100%;text-align:left;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:var(--s3) var(--s4);margin-top:var(--s2)}
+.note-card b{display:block;font-size:16px;overflow-wrap:anywhere}
+.note-card span{display:block;font-size:var(--fs-sec);color:var(--text-2);overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.note-card small{color:var(--text-3);font-size:var(--fs-meta)}
+.note-title{width:100%;border:0;background:none;font-size:24px;font-weight:700;padding:var(--s2) 0;outline:none;color:var(--text)}
+.toolbar{position:sticky;top:56px;z-index:2;display:flex;gap:2px;background:var(--bg);padding:var(--s1) 0 var(--s2);overflow-x:auto}
+.toolbar button{min-width:var(--tap);height:40px;border:1px solid var(--border);background:var(--surface);border-radius:10px;font-weight:700;font-size:15px}
+.toolbar button:active{background:var(--surface-2)}
+.editor{min-height:50vh;outline:none;font-size:16px;line-height:1.65;overflow-wrap:anywhere;padding:var(--s2) 0}
+.editor:empty::before{content:attr(data-ph);color:var(--text-3)}
+.editor h2{font-size:20px;margin:var(--s3) 0 var(--s1)}
+.editor h3{font-size:17px;margin:var(--s3) 0 var(--s1)}
+.editor ul,.editor ol{padding-left:26px;margin:var(--s1) 0}
+.editor ul.cl{list-style:none;padding-left:0}
+.editor ul.cl li{position:relative;padding-left:36px;min-height:32px}
+.editor ul.cl li::before{content:"";position:absolute;left:4px;top:5px;width:20px;height:20px;border:2px solid var(--border-strong);border-radius:6px}
+.editor ul.cl li[data-done="1"]{color:var(--text-3);text-decoration:line-through}
+.editor ul.cl li[data-done="1"]::before{background:var(--success) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center/14px no-repeat;border-color:var(--success)}
+
+/* focus */
+.clock{font-size:64px;font-weight:700;text-align:center;font-variant-numeric:tabular-nums;letter-spacing:-.02em;margin:var(--s5) 0 var(--s1);line-height:1.1}
+.cont{display:flex;align-items:center;gap:var(--s3);padding:var(--s3) var(--s4);margin-top:var(--s3)}
+.cont>div{flex:1;min-width:0}
+.cont-task{font-weight:600;overflow-wrap:anywhere}
+.cont .btn{height:40px;padding:0 var(--s4)}
+.bars{display:flex;align-items:flex-end;gap:var(--s2);height:64px;margin:var(--s3) 0 var(--s1)}
+.bars div{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;gap:4px;font-size:11px;color:var(--text-3)}
+.bars i{display:block;width:100%;max-width:28px;border-radius:4px 4px 2px 2px;background:var(--primary);min-height:2px}
+
+/* AI */
+.ai-head{display:flex;align-items:center;gap:var(--s1)}
+.ai-head .title{flex:1}
+.ai-head .icon-btn:last-child{margin-right:-10px}
+.msgs{display:flex;flex-direction:column;gap:var(--s3);padding-bottom:var(--s3)}
+.msg{max-width:92%;font-size:15.5px;line-height:1.55;overflow-wrap:anywhere}
+.msg.user{align-self:flex-end;background:var(--primary-soft);color:var(--text);padding:var(--s2) var(--s3);border-radius:var(--r-lg) var(--r-lg) 4px var(--r-lg)}
+.msg.ai{align-self:flex-start;max-width:100%;width:100%}
+.msg.ai p+p,.msg.ai p+ul,.msg.ai ul+p{margin-top:var(--s2)}
+.msg.ai ul{margin:var(--s1) 0;padding-left:20px}
+.msg.err{align-self:flex-start;color:var(--text-2);background:var(--surface-2);padding:var(--s3);border-radius:var(--r-md);font-size:var(--fs-sec)}
+.msg.err .btn{margin-top:var(--s2);height:38px}
+.ai-card{padding:var(--s3) var(--s4);margin-top:var(--s2)}
+.ai-title{font-size:13px;font-weight:700;letter-spacing:.02em;color:var(--text-2);text-transform:uppercase;margin-bottom:var(--s2)}
+.diff-day{margin-top:var(--s2);font-size:13px;font-weight:600;color:var(--text-2)}
+.ln{display:flex;gap:var(--s2);font-size:14.5px;padding:2px 0;overflow-wrap:anywhere}
+.ln b{width:14px;flex:none;text-align:center}
+.ln.plus b{color:var(--success)}
+.ln.minus b{color:var(--danger)}
+.ln.mod b{color:var(--accent-ink)}
+.ai-card .actions{margin-top:var(--s3)}
+.ai-card .actions .btn{height:40px}
+.link-btn{background:none;border:0;color:var(--primary);font-weight:600;min-height:var(--tap);padding:0}
+.composer{position:sticky;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px));background:var(--bg);padding:var(--s2) 0 var(--s3);z-index:5}
+.composer form{display:flex;gap:var(--s2);align-items:flex-end}
+.composer textarea{flex:1;min-height:var(--input-h);max-height:140px;border:1px solid var(--border-strong);border-radius:var(--r-lg);padding:11px var(--s3);font-size:16px;line-height:1.4;resize:none;background:var(--surface)}
+.composer textarea:focus{outline:2px solid var(--primary);outline-offset:0;border-color:transparent}
+.composer .btn{width:var(--input-h);padding:0;border-radius:var(--r-full);height:var(--input-h)}
+.ctx{display:inline-flex;align-items:center;gap:var(--s1);height:32px;padding:0 4px 0 12px;margin-bottom:var(--s2);border-radius:var(--r-full);background:var(--accent-soft);color:var(--accent-ink);font-size:13.5px;font-weight:600}
+.ctx button{width:28px;height:28px;border:0;background:none;color:inherit;display:grid;place-items:center}
+.examples{display:flex;flex-direction:column;gap:var(--s2);margin-top:var(--s3)}
+.examples button{text-align:left;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:var(--s3);font-size:15px;min-height:var(--tap)}
+.thinking{color:var(--text-3);font-size:var(--fs-sec)}
+@media (min-width:900px){.composer{bottom:0}}
+</style>
+<meta name="theme-color" content="#0b1220">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="InflowMap">
+</head>
+<body>
+<div id="app"><main id="view" tabindex="-1" aria-live="off"></main></div>
+<nav class="nav" id="nav" aria-label="Primary"></nav>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+'use strict';
+/* =====================================================================
+   InflowMap — Phase 1–3 (foundation, routine experience, progress)
+   Layers: PURE (helpers/parser/validation) → DB (IndexedDB) → STORE
+   (state + commands) → UI (views, sheets, events). AI layer comes later.
+   ===================================================================== */
+
+/* PURE:START */
+const uid = () => (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : 'id' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad = n => String(n).padStart(2, '0');
+const toISO = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const parseISO = s => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d, 12, 0, 0); };
+const todayISO = () => toISO(new Date());
+const addDaysISO = (s, n) => { const d = parseISO(s); d.setDate(d.getDate() + n); return toISO(d); };
+const diffDays = (a, b) => Math.round((parseISO(a) - parseISO(b)) / 86400000);
+const isValidISO = s => typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s) && toISO(parseISO(s)) === s;
+const fmtShort = s => parseISO(s).toLocaleDateString('en-GB', {day: 'numeric', month: 'short'});
+const fmtLong = s => parseISO(s).toLocaleDateString('en-GB', {weekday: 'long', day: 'numeric', month: 'long'});
+const bnDigits = s => String(s).replace(/[০-৯]/g, d => '০১২৩৪৫৬৭৮৯'.indexOf(d));
+const toInt = v => { const n = parseInt(bnDigits(String(v == null ? '' : v).trim()), 10); return Number.isFinite(n) ? n : NaN; };
+const clean = (s, max) => String(s == null ? '' : s).replace(/\s+/g, ' ').trim().slice(0, max);
+const MAX_DAYS = 3650;
+
+function parseBulk(text) {
+  const days = new Map(); let cur = null; const warnings = []; let taskCount = 0; const subjects = new Set();
+  String(text || '').split(/\r?\n/).forEach((raw, i) => {
+    const line = raw.trim(); if (!line) return;
+    const dm = bnDigits(line).match(/^(?:day|দিন)\s*[-#:]?\s*(\d{1,4})\s*[:.\-–]?\s*$/i);
+    if (dm) {
+      cur = parseInt(dm[1], 10);
+      if (cur < 1 || cur > MAX_DAYS) { warnings.push(`Line ${i + 1}: day number is out of range.`); cur = null; return; }
+      if (!days.has(cur)) days.set(cur, []);
+      return;
+    }
+    const ci = line.search(/[:：]/);
+    if (ci < 1) { warnings.push(`Line ${i + 1} was skipped.`); return; }
+    if (cur === null) { warnings.push(`Line ${i + 1} comes before any "Day" line.`); return; }
+    const subject = clean(line.slice(0, ci), 60);
+    const titles = line.slice(ci + 1).split(/[,،;]/).map(s => clean(s, 200)).filter(Boolean);
+    if (!subject || !titles.length) { warnings.push(`Line ${i + 1} was skipped.`); return; }
+    subjects.add(subject.toLowerCase());
+    titles.forEach(t => { days.get(cur).push({subject, title: t}); taskCount++; });
+  });
+  const nums = [...days.keys()];
+  return {days, maxDay: nums.length ? Math.max(...nums) : 0, dayCount: nums.length, taskCount, subjectCount: subjects.size, warnings};
+}
+
+function validateTask(input, multi) {
+  const subject = clean(input.subject, 60);
+  if (!subject) return {error: 'Add a subject.'};
+  const titles = multi
+    ? String(input.title || '').split(/[,،;\n]/).map(s => clean(s, 200)).filter(Boolean)
+    : [clean(input.title, 200)].filter(Boolean);
+  if (!titles.length) return {error: 'Add a topic or task name.'};
+  let minutes = null; const m = String(input.minutes == null ? '' : input.minutes).trim();
+  if (m) { const n = toInt(m); if (!(n >= 1 && n <= 1440)) return {error: 'Estimated time should be between 1 and 1440 minutes.'}; minutes = n; }
+  return {value: {subject, titles, minutes, note: clean(input.note, 300)}};
+}
+/* PURE:END */
+
+/* ========================= DB (IndexedDB) ========================= */
+const DB_NAME = 'inflowmap', DB_VER = 1;
+const STORES = {
+  routines: {}, days: {idx: ['routineId']}, subjects: {}, tasks: {idx: ['dayId']},
+  notes: {}, sessions: {idx: ['taskId']}, templates: {}, aiChanges: {}, settings: {keyPath: 'key'}
+};
+const db = {
+  h: null, ok: false,
+  async open() {
+    try {
+      this.h = await new Promise((res, rej) => {
+        const r = indexedDB.open(DB_NAME, DB_VER);
+        r.onupgradeneeded = () => {
+          const d = r.result;
+          for (const [n, c] of Object.entries(STORES)) {
+            if (d.objectStoreNames.contains(n)) continue;
+            const s = d.createObjectStore(n, {keyPath: c.keyPath || 'id'});
+            (c.idx || []).forEach(i => s.createIndex(i, i));
+          }
+        };
+        r.onsuccess = () => res(r.result);
+        r.onerror = () => rej(r.error);
+        r.onblocked = () => rej(new Error('blocked'));
+      });
+      this.ok = true;
+    } catch (e) { this.ok = false; }
+    return this.ok;
+  },
+  getAll(name) {
+    if (!this.ok) return Promise.resolve([]);
+    return new Promise((res, rej) => {
+      const r = this.h.transaction(name).objectStore(name).getAll();
+      r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+    });
+  },
+  batch(ch) {
+    if (!this.ok) return Promise.resolve();
+    const put = ch.put || {}, del = ch.del || {};
+    const names = [...new Set([...Object.keys(put), ...Object.keys(del)])].filter(n => (put[n] && put[n].length) || (del[n] && del[n].length));
+    if (!names.length) return Promise.resolve();
+    return new Promise((res, rej) => {
+      const tx = this.h.transaction(names, 'readwrite');
+      for (const n of names) {
+        const s = tx.objectStore(n);
+        (put[n] || []).forEach(v => s.put(v));
+        (del[n] || []).forEach(k => s.delete(k));
+      }
+      tx.oncomplete = () => res();
+      tx.onerror = () => rej(tx.error);
+      tx.onabort = () => rej(tx.error || new Error('aborted'));
+    });
+  }
+};
+
+/* ============================ STORE ============================ */
+const S = {routines: [], days: [], subjects: [], tasks: [], notes: [], sessions: [], templates: [], aiChanges: [], settings: {theme: 'system', name: ''}, v: 0};
+const ui = {tab: 'home', routineView: 'all', viewRoutineId: null, dayOpen: {}, pendingCollapse: new Set(), showCompleted: false, lastPct: 0, scrollToday: false};
+
+let _ix = null;
+function index() {
+  if (_ix && _ix.v === S.v) return _ix;
+  const daysByRoutine = new Map(), dayById = new Map(), tasksByDay = new Map(), subjectById = new Map();
+  S.subjects.forEach(s => subjectById.set(s.id, s));
+  S.days.forEach(d => { dayById.set(d.id, d); if (!daysByRoutine.has(d.routineId)) daysByRoutine.set(d.routineId, []); daysByRoutine.get(d.routineId).push(d); });
+  daysByRoutine.forEach(a => a.sort((x, y) => x.dayNumber - y.dayNumber));
+  S.tasks.forEach(t => { if (!tasksByDay.has(t.dayId)) tasksByDay.set(t.dayId, []); tasksByDay.get(t.dayId).push(t); });
+  tasksByDay.forEach(a => a.sort((x, y) => x.sortOrder - y.sortOrder));
+  _ix = {v: S.v, daysByRoutine, dayById, tasksByDay, subjectById};
+  return _ix;
+}
+
+function applyChanges(ch) {
+  for (const [n, recs] of Object.entries(ch.put || {})) {
+    const arr = S[n]; const pos = new Map(arr.map((x, i) => [x.id, i]));
+    for (const r of recs) { if (pos.has(r.id)) arr[pos.get(r.id)] = r; else { pos.set(r.id, arr.length); arr.push(r); } }
+  }
+  for (const [n, ids] of Object.entries(ch.del || {})) { const set = new Set(ids); S[n] = S[n].filter(x => !set.has(x.id)); }
+  S.v++;
+}
+
+async function commit(ch, opts) {
+  opts = opts || {};
+  ch.put = ch.put || {}; ch.del = ch.del || {};
+  const touched = new Set(ch.touchDays || []);
+  (ch.put.tasks || []).forEach(t => touched.add(t.dayId));
+  applyChanges(ch);
+  const ix = index(), fix = [];
+  touched.forEach(did => {
+    const d = ix.dayById.get(did); if (!d) return;
+    const ts = ix.tasksByDay.get(did) || [];
+    const st = ts.length && ts.every(t => t.completed) ? 'complete' : 'open';
+    if (st !== d.status) {
+      fix.push({...d, status: st});
+      delete ui.dayOpen[did];
+      if (st === 'complete') ui.pendingCollapse.add(did);
+    }
+  });
+  if (fix.length) { applyChanges({put: {days: fix}}); ch.put.days = (ch.put.days || []).concat(fix); }
+  if (opts.renderDelay) setTimeout(render, opts.renderDelay); else render();
+  try { await db.batch(ch); }
+  catch (e) { toast("Couldn't save that change. Reloading your data."); await loadAll(); render(); }
+}
+
+async function loadAll() {
+  if (db.ok) {
+    const [r, d, s, t, st, nt, se, tp, ac] = await Promise.all(['routines', 'days', 'subjects', 'tasks', 'settings', 'notes', 'sessions', 'templates', 'aiChanges'].map(n => db.getAll(n)));
+    S.routines = r; S.days = d; S.subjects = s; S.tasks = t; S.notes = nt; S.sessions = se; S.templates = tp; S.aiChanges = ac;
+    S.settings = {theme: 'system', name: '', ...Object.fromEntries(st.map(x => [x.key, x.value]))};
+  }
+  S.v++;
+}
+function setSetting(key, value) {
+  S.settings[key] = value;
+  db.batch({put: {settings: [{key, value}]}}).catch(() => toast("Couldn't save that setting."));
+}
+
+function subjectResolver(put) {
+  const map = new Map(S.subjects.map(s => [s.name.toLowerCase(), s.id]));
+  return name => {
+    const k = name.toLowerCase();
+    if (map.has(k)) return map.get(k);
+    const s = {id: uid(), name}; (put.subjects = put.subjects || []).push(s); map.set(k, s.id); return s.id;
+  };
+}
+function newTask(dayId, subjectId, title, sortOrder, x) {
+  const now = Date.now(); x = x || {};
+  return {id: uid(), dayId, subjectId, title, completed: false, completedAt: null,
+    estimatedMinutes: x.minutes == null ? null : x.minutes, note: x.note || '', createdAt: now, updatedAt: now, sortOrder};
+}
+const nextOrder = dayId => (index().tasksByDay.get(dayId) || []).reduce((m, t) => Math.max(m, t.sortOrder), -1) + 1;
+const findTask = id => S.tasks.find(t => t.id === id);
+const primaryRoutine = () => S.routines.find(r => r.isPrimary) || null;
+const currentRoutine = () => S.routines.find(r => r.id === ui.viewRoutineId) || primaryRoutine() || S.routines[0] || null;
+
+function todayInfo(r) {
+  const n = diffDays(todayISO(), r.startDate) + 1;
+  const state = n < 1 ? 'before' : n > r.duration ? 'after' : 'during';
+  const day = state === 'during' ? (index().daysByRoutine.get(r.id) || []).find(d => d.dayNumber === n) : null;
+  return {n, state, day};
+}
+function statsFor(r) {
+  const ix = index(), days = ix.daysByRoutine.get(r.id) || [];
+  let total = 0, done = 0, daysDone = 0; const bySubj = new Map();
+  days.forEach(d => {
+    const ts = ix.tasksByDay.get(d.id) || []; total += ts.length; if (d.status === 'complete') daysDone++;
+    ts.forEach(t => { if (t.completed) done++; const b = bySubj.get(t.subjectId) || {total: 0, done: 0}; b.total++; if (t.completed) b.done++; bySubj.set(t.subjectId, b); });
+  });
+  return {total, done, daysDone, days: days.length, bySubj, pct: total ? Math.round(done / total * 100) : 0};
+}
+function streakFor(r) {
+  const ti = todayInfo(r); if (ti.state === 'before') return 0;
+  const byNum = new Map((index().daysByRoutine.get(r.id) || []).map(d => [d.dayNumber, d]));
+  let i = ti.state === 'after' ? r.duration : ti.n;
+  if (!(byNum.get(i) && byNum.get(i).status === 'complete')) i--;
+  let s = 0; while (i >= 1 && byNum.get(i) && byNum.get(i).status === 'complete') { s++; i--; }
+  return s;
+}
+function subjectsInRoutine(rid) {
+  const ix = index(), count = new Map();
+  (ix.daysByRoutine.get(rid) || []).forEach(d => (ix.tasksByDay.get(d.id) || []).forEach(t => count.set(t.subjectId, (count.get(t.subjectId) || 0) + 1)));
+  return [...count].sort((a, b) => b[1] - a[1]).map(([id]) => (ix.subjectById.get(id) || {}).name).filter(Boolean);
+}
+function groupBySubject(tasks) {
+  const ix = index(), map = new Map();
+  tasks.forEach(t => { if (!map.has(t.subjectId)) map.set(t.subjectId, []); map.get(t.subjectId).push(t); });
+  return [...map].map(([sid, ts]) => ({name: (ix.subjectById.get(sid) || {}).name || 'Other', tasks: ts}));
+}
+
+/* ---- Commands: every mutation is validated here, never in the UI ---- */
+const cmd = {
+  async createRoutine({name, startDate, duration, items, makePrimary}) {
+    name = clean(name, 60);
+    if (!name) return {error: 'Give the routine a name.'};
+    if (!isValidISO(startDate)) return {error: 'Choose a valid start date.'};
+    if (!Number.isInteger(duration) || duration < 1 || duration > MAX_DAYS) return {error: `Duration should be between 1 and ${MAX_DAYS} days.`};
+    const now = Date.now(), rid = uid(), put = {routines: [], days: [], subjects: [], tasks: []};
+    const primary = makePrimary || !S.routines.some(r => r.isPrimary);
+    if (primary) S.routines.filter(r => r.isPrimary).forEach(r => put.routines.push({...r, isPrimary: false, updatedAt: now}));
+    put.routines.push({id: rid, name, startDate, duration, status: 'active', isPrimary: primary, createdAt: now, updatedAt: now});
+    const subj = subjectResolver(put);
+    for (let n = 1; n <= duration; n++) {
+      const did = uid();
+      put.days.push({id: did, routineId: rid, dayNumber: n, date: addDaysISO(startDate, n - 1), status: 'open'});
+      ((items && items.get(n)) || []).forEach((it, i) => put.tasks.push(newTask(did, subj(it.subject), it.title, i, {minutes: it.minutes, note: it.note})));
+    }
+    await commit({put});
+    return {id: rid};
+  },
+  async updateRoutine(id, {name, startDate, extend, status}) {
+    const r = S.routines.find(x => x.id === id); if (!r) return {error: 'That routine no longer exists.'};
+    const put = {routines: [], days: []}, now = Date.now(); const nr = {...r, updatedAt: now};
+    if (name !== undefined) { nr.name = clean(name, 60); if (!nr.name) return {error: 'Give the routine a name.'}; }
+    if (startDate !== undefined && startDate !== r.startDate) {
+      if (!isValidISO(startDate)) return {error: 'Choose a valid start date.'};
+      nr.startDate = startDate;
+      (index().daysByRoutine.get(id) || []).forEach(d => put.days.push({...d, date: addDaysISO(startDate, d.dayNumber - 1)}));
+    }
+    if (extend) {
+      if (!Number.isInteger(extend) || extend < 1 || r.duration + extend > MAX_DAYS) return {error: `A routine can have up to ${MAX_DAYS} days.`};
+      for (let n = r.duration + 1; n <= r.duration + extend; n++) put.days.push({id: uid(), routineId: id, dayNumber: n, date: addDaysISO(nr.startDate, n - 1), status: 'open'});
+      nr.duration = r.duration + extend;
+    }
+    if (status !== undefined) { if (!['active', 'paused', 'completed'].includes(status)) return {error: 'Unknown status.'}; nr.status = status; }
+    put.routines.push(nr); await commit({put}); return {};
+  },
+  async setPrimary(id) {
+    const now = Date.now();
+    await commit({put: {routines: S.routines.filter(r => r.isPrimary !== (r.id === id)).map(r => ({...r, isPrimary: r.id === id, updatedAt: now}))}});
+  },
+  async deleteRoutine(id) {
+    const ix = index(), days = ix.daysByRoutine.get(id) || [], del = {routines: [id], days: days.map(d => d.id), tasks: []};
+    days.forEach(d => (ix.tasksByDay.get(d.id) || []).forEach(t => del.tasks.push(t.id)));
+    const put = {};
+    const wasPrimary = (S.routines.find(r => r.id === id) || {}).isPrimary;
+    if (wasPrimary) { const next = S.routines.find(r => r.id !== id && r.status === 'active') || S.routines.find(r => r.id !== id); if (next) put.routines = [{...next, isPrimary: true, updatedAt: Date.now()}]; }
+    if (ui.viewRoutineId === id) ui.viewRoutineId = null;
+    await commit({put, del});
+  },
+  async addTasks(dayId, input) {
+    const v = validateTask(input, true); if (v.error) return v;
+    if (!index().dayById.has(dayId)) return {error: 'That day no longer exists.'};
+    const put = {tasks: []}, sid = subjectResolver(put)(v.value.subject); let order = nextOrder(dayId);
+    v.value.titles.forEach(title => put.tasks.push(newTask(dayId, sid, title, order++, {minutes: v.value.minutes, note: v.value.note})));
+    await commit({put}); return {count: put.tasks.length};
+  },
+  async updateTask(id, input) {
+    const t = findTask(id); if (!t) return {error: 'That task no longer exists.'};
+    const v = validateTask(input, false); if (v.error) return v;
+    const put = {tasks: []}; const sid = subjectResolver(put)(v.value.subject);
+    put.tasks.push({...t, title: v.value.titles[0], subjectId: sid, estimatedMinutes: v.value.minutes, note: v.value.note, updatedAt: Date.now()});
+    await commit({put}); return {};
+  },
+  async toggleTask(id, opts) {
+    const t = findTask(id); if (!t) return;
+    await commit({put: {tasks: [{...t, completed: !t.completed, completedAt: t.completed ? null : Date.now(), updatedAt: Date.now()}]}}, opts);
+  },
+  async deleteTask(id) {
+    const t = findTask(id); if (!t) return null;
+    await commit({del: {tasks: [id]}, touchDays: [t.dayId]}); return t;
+  },
+  async restoreTask(t) { await commit({put: {tasks: [t]}}); },
+  targetDay(t, n) {
+    const day = index().dayById.get(t.dayId), days = index().daysByRoutine.get(day.routineId) || [];
+    if (!Number.isInteger(n) || n < 1) return {error: 'Enter a day number.'};
+    const target = days.find(d => d.dayNumber === n);
+    return target ? {target} : {error: `Day ${n} doesn't exist. This routine has ${days.length} days.`};
+  },
+  async moveTask(id, n) {
+    const t = findTask(id); if (!t) return {error: 'That task no longer exists.'};
+    const r = this.targetDay(t, n); if (r.error) return r;
+    if (r.target.id === t.dayId) return {error: 'The task is already on that day.'};
+    await commit({put: {tasks: [{...t, dayId: r.target.id, sortOrder: nextOrder(r.target.id), updatedAt: Date.now()}]}, touchDays: [t.dayId]});
+    return {day: r.target};
+  },
+  async copyTask(id, n) {
+    const t = findTask(id); if (!t) return {error: 'That task no longer exists.'};
+    const r = this.targetDay(t, n); if (r.error) return r;
+    await commit({put: {tasks: [newTask(r.target.id, t.subjectId, t.title, nextOrder(r.target.id), {minutes: t.estimatedMinutes, note: t.note})]}});
+    return {day: r.target};
+  },
+  async clearAll() {
+    await commit({del: {routines: S.routines.map(x => x.id), days: S.days.map(x => x.id), tasks: S.tasks.map(x => x.id), subjects: S.subjects.map(x => x.id)}});
+    ui.viewRoutineId = null; ui.dayOpen = {};
+  }
+};
+
+/* ============================== UI ============================== */
+const $ = (s, r) => (r || document).querySelector(s);
+const ICONS = {
+  home: '<path d="M4 11.5 12 5l8 6.5V19a1 1 0 0 1-1 1h-4v-5H9v5H5a1 1 0 0 1-1-1z"/>',
+  route: '<circle cx="6" cy="18" r="2"/><circle cx="18" cy="6" r="2"/><path d="M8 18h6a3 3 0 0 0 0-6h-4a3 3 0 0 1 0-6h6"/>',
+  ai: '<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 16l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7z"/>',
+  progress: '<path d="M5 20V11M12 20V5M19 20v-6"/>',
+  more: '<circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/>',
+  check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>', plus: '<path d="M12 5v14M5 12h14"/>', chev: '<path d="M6 9l6 6 6-6"/>',
+  history: '<path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/><path d="M12 7v5l3 2"/>',
+  stop: '<rect x="7" y="7" width="10" height="10" rx="2"/>',
+  send: '<path d="M4 4l16 8-16 8 3-8z"/><path d="M7 12h7"/>',
+  back: '<path d="M15 18l-6-6 6-6"/>',
+  edit: '<path d="M4 20h4l10-10-4-4L4 16z"/><path d="M13 7l4 4"/>',
+  dots: '<circle cx="12" cy="5" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="12" cy="19" r="1.4"/>',
+  calendar: '<rect x="4" y="5" width="16" height="15" rx="3"/><path d="M8 3v4M16 3v4M4 10h16"/>',
+  flame: '<path d="M12 3c1 3 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-1-5 1-9z"/>',
+  edit: '<path d="M4 20h4l10-10-4-4L4 16z"/><path d="M13 7l4 4"/>',
+  trash: '<path d="M5 7h14M10 7V5h4v2M7 7l1 12h8l1-12"/>',
+  copy: '<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/>',
+  dup: '<rect x="4" y="4" width="12" height="12" rx="2"/><path d="M8 20h10a2 2 0 0 0 2-2V8"/>',
+  move: '<path d="M5 12h14M13 6l6 6-6 6"/>', play: '<path d="M8 5l11 7-11 7z"/>'
+};
+const icon = (n, size) => `<svg class="ic" width="${size || 22}" height="${size || 22}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n]}</svg>`;
+const reduceMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---- toast ---- */
+let toastTimer;
+function toast(msg, o) {
+  o = o || {}; const t = $('#toast');
+  t.innerHTML = `<span>${esc(msg)}</span>${o.label ? `<button type="button" data-a="toast-action">${esc(o.label)}</button>` : ''}`;
+  t._cb = o.onAction; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), o.ms || 3500);
+}
+
+/* ---- bottom sheet ---- */
+let sheetEl = null, sheetOpener = null, confirmCb = null;
+function openSheet(html, onMount) {
+  closeSheet(true); sheetOpener = document.activeElement;
+  const o = document.createElement('div'); o.className = 'overlay';
+  o.innerHTML = `<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sh-title" tabindex="-1"><div class="grab" aria-hidden="true"></div>${html}</div>`;
+  o.addEventListener('click', e => { if (e.target === o) closeSheet(); });
+  document.body.appendChild(o); sheetEl = o;
+  requestAnimationFrame(() => requestAnimationFrame(() => o.classList.add('open')));
+  const p = o.firstElementChild, first = p.querySelector('input:not([type=hidden]),textarea');
+  (first || p).focus({preventScroll: true});
+  if (onMount) onMount(p);
+}
+function closeSheet(instant) {
+  if (!sheetEl) return; const o = sheetEl; sheetEl = null;
+  if (instant) o.remove(); else { o.classList.remove('open'); setTimeout(() => o.remove(), 280); }
+  if (!instant && sheetOpener && document.contains(sheetOpener)) sheetOpener.focus({preventScroll: true});
+}
+function openConfirm({title, text, label, danger, onConfirm}) {
+  confirmCb = onConfirm;
+  openSheet(`<h2 id="sh-title" class="sh-title">${esc(title)}</h2><p class="sh-sub">${esc(text)}</p>
+    <div class="actions"><button type="button" class="btn btn-quiet" data-a="sheet-close">Cancel</button>
+    <button type="button" class="btn ${danger ? 'btn-danger' : 'btn-primary'}" data-a="confirm-yes">${esc(label)}</button></div>`);
+}
+
+/* ---- shared fragments ---- */
+function emptyRoutine() {
+  return `<section class="empty"><h2>Your map is empty</h2><p>Build your first study plan.</p>
+    <button class="btn btn-primary" data-a="routine-new">Create routine</button></section>`;
+}
+function taskRow(t) {
+  const meta = [t.estimatedMinutes ? `<span>${t.estimatedMinutes} min</span>` : '', t.note ? `<span>${esc(t.note)}</span>` : ''].join('');
+  return `<div class="task${t.completed ? ' done' : ''}" data-task="${t.id}">
+    <button class="chk" data-a="toggle" data-id="${t.id}" role="checkbox" aria-checked="${t.completed}" aria-label="${esc(t.title)}"><i>${icon('check', 14)}</i></button>
+    <div class="task-main"><span class="task-title">${esc(t.title)}</span>${meta ? `<span class="task-meta">${meta}</span>` : ''}</div>
+    <button class="kebab" data-a="task-menu" data-id="${t.id}" aria-label="Actions for ${esc(t.title)}">${icon('dots', 20)}</button></div>`;
+}
+const storageNotice = () => db.ok ? '' : `<p class="notice" role="status">Storage isn't available in this browser, so changes will be lost when you close the page.</p>`;
+
+/* ---- HOME ---- */
+function viewHome() {
+  const r = primaryRoutine();
+  if (!r) return storageNotice() + emptyRoutine();
+  const ti = todayInfo(r), h = new Date().getHours();
+  const greet = (h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening') + (S.settings.name ? ', ' + esc(S.settings.name) : '');
+  const title = ti.state === 'during' ? `Day ${ti.n} of ${r.duration}` : ti.state === 'before' ? 'Starting soon' : 'Routine finished';
+  let out = `${storageNotice()}<header class="page-head"><button class="icon-btn head-search" data-a="search" aria-label="Search">${icon('search')}</button><p class="greet">${greet}</p><h1 class="title">${title}</h1>
+    <p class="sub">${fmtLong(todayISO())}</p><p class="sub">${esc(r.name)}</p></header>`;
+  if (ti.state !== 'during') {
+    const st = statsFor(r);
+    const msg = ti.state === 'before'
+      ? `This routine starts on ${fmtShort(r.startDate)}, in ${-ti.n + 1} day${-ti.n + 1 === 1 ? '' : 's'}.`
+      : `This routine ended on ${fmtShort(addDaysISO(r.startDate, r.duration - 1))}. You finished ${st.done} of ${st.total} tasks.`;
+    return out + `<section class="card prog"><p class="prog-text">${msg}</p></section>
+      <div class="quick"><button class="chip-btn primary" data-a="go-routine">Open routine</button></div>`;
+  }
+  const ts = index().tasksByDay.get(ti.day.id) || [], open = ts.filter(t => !t.completed), done = ts.filter(t => t.completed);
+  const pct = ts.length ? Math.round(done.length / ts.length * 100) : 0;
+  out += `<section class="card prog" aria-label="Today's progress"><div class="prog-row"><span class="pct">${pct}%</span>
+    <span class="prog-text">${ts.length ? `${done.length} of ${ts.length} tasks done` : 'Nothing planned for today'}</span></div>
+    <div class="bar${pct === 100 ? ' full' : ''}" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><span data-to="${pct}" style="width:${ui.lastPct}%"></span></div></section>
+    ${continueCard()}<div class="quick">
+      <button class="chip-btn primary" data-a="add-task-today">${icon('plus', 18)} Add task</button>
+      <button class="chip-btn" data-a="focus">${icon('play', 16)} Start focus</button>
+      <button class="chip-btn" data-a="go-ai">${icon('ai', 16)} Ask AI</button></div>`;
+  if (ts.length && !open.length) out += `<p class="muted" style="margin:var(--s4) 0">Everything for today is done.</p>`;
+  if (open.length) out += `<div class="card list-card" style="margin-top:var(--s3)">${groupBySubject(open).map(g => `<div class="subj"><h3 class="subj-name">${esc(g.name)}</h3>${g.tasks.map(taskRow).join('')}</div>`).join('')}</div>`;
+  if (!ts.length) out += `<p class="muted" style="margin:var(--s4) 0">Add a task to get today started.</p>`;
+  if (done.length) {
+    out += `<button class="completed-head" data-a="toggle-completed" aria-expanded="${ui.showCompleted}">Completed (${done.length}) ${icon('chev', 16)}</button>`;
+    if (ui.showCompleted) out += `<div class="card list-card">${groupBySubject(done).map(g => `<div class="subj"><h3 class="subj-name">${esc(g.name)}</h3>${g.tasks.map(taskRow).join('')}</div>`).join('')}</div>`;
+  }
+  return out;
+}
+
+/* ---- ROUTINE ---- */
+function dayCard(d, ti) {
+  const ts = index().tasksByDay.get(d.id) || [], done = ts.filter(t => t.completed).length, complete = d.status === 'complete';
+  const isToday = ti.state === 'during' && d.dayNumber === ti.n;
+  const isOpen = ui.pendingCollapse.has(d.id) ? true : (d.id in ui.dayOpen ? ui.dayOpen[d.id] : !complete);
+  const body = groupBySubject(ts).map(g => `<div class="subj"><h3 class="subj-name">${esc(g.name)}</h3>${g.tasks.map(taskRow).join('')}</div>`).join('') || `<p class="empty-day">No tasks yet</p>`;
+  return `<div class="dayw${complete ? ' is-complete' : ''}${isToday ? ' is-today' : ''}" id="dw-${d.dayNumber}"><span class="node"></span>
+    <article class="day${isOpen ? ' open' : ''}${isToday ? ' today' : ''}${complete ? ' complete' : ''}" data-day="${d.id}">
+      <button class="day-head" data-a="day-toggle" data-id="${d.id}" aria-expanded="${isOpen}">
+        <span class="day-title">Day ${d.dayNumber}</span><span class="day-date">${fmtShort(d.date)}</span>${isToday ? '<span class="tag">Today</span>' : ''}
+        <span class="day-prog">${complete ? icon('check', 16) + '<span class="sr">Complete</span>' : ''}${ts.length ? `${done}/${ts.length}` : 'Empty'}</span><span class="chev">${icon('chev', 18)}</span></button>
+      <div class="day-body"><div class="day-clip"><div class="day-content">${body}
+        <div class="day-foot"><button class="add-inline" data-a="add-task" data-day="${d.id}">${icon('plus', 16)} Add task</button><button class="add-inline" data-a="ask-ai-day" data-id="${d.id}" aria-label="Ask AI about Day ${d.dayNumber}">${icon('ai', 16)} Ask AI</button></div></div></div></div>
+    </article></div>`;
+}
+function viewRoutine() {
+  const r = currentRoutine(); if (!r) return emptyRoutine();
+  const ix = index(), days = ix.daysByRoutine.get(r.id) || [], ti = todayInfo(r);
+  let list;
+  if (ui.routineView === 'today') {
+    if (ti.state === 'during' && ti.day) list = `<div class="trail">${dayCard(ti.day, ti)}</div>`;
+    else list = `<div class="card prog" style="margin-top:var(--s3)"><p class="prog-text">${ti.state === 'before' ? `This routine starts on ${fmtShort(r.startDate)}.` : 'This routine has ended.'}</p>
+      <div class="actions"><button class="btn btn-quiet" data-a="seg-view" data-v="all">Show all days</button></div></div>`;
+  } else {
+    list = `<div class="trail${days.length > 120 ? ' cv' : ''}">${days.map(d => dayCard(d, ti)).join('')}</div>
+      <button class="btn btn-quiet block" data-a="add-day" style="margin-top:var(--s2)">${icon('plus', 18)} Add a day</button>`;
+  }
+  return `<h1 class="sr">Routine</h1><div class="rt-bar"><div class="rt-top">
+    <button class="rt-title" data-a="routines" aria-label="Switch routine, current: ${esc(r.name)}"><span>${esc(r.name)}</span>${icon('chev', 18)}</button>
+    <button class="icon-btn" data-a="search" aria-label="Search">${icon('search')}</button><button class="icon-btn" data-a="jump" aria-label="Go to a day or date">${icon('calendar')}</button></div>
+    <div class="seg" role="group" aria-label="Routine view"><button data-a="seg-view" data-v="all" aria-pressed="${ui.routineView === 'all'}">All days</button>
+    <button data-a="seg-view" data-v="today" aria-pressed="${ui.routineView === 'today'}">Today</button></div></div>${list}
+    ${ui.routineView === 'all' && ti.state === 'during' ? '<button class="fab-today" data-a="scroll-today">Today</button>' : ''}`;
+}
+
+/* ---- PROGRESS ---- */
+function viewProgress() {
+  const r = primaryRoutine();
+  if (!r) return `<header class="page-head"><h1 class="title">Progress</h1></header>` + emptyRoutine();
+  const st = statsFor(r), ti = todayInfo(r), ix = index(), streak = streakFor(r);
+  const pos = ti.state === 'during' ? `Day ${ti.n} of ${r.duration}` : ti.state === 'before' ? `Starts ${fmtShort(r.startDate)}` : 'Finished';
+  const subs = [...st.bySubj].map(([id, b]) => ({name: (ix.subjectById.get(id) || {}).name || 'Other', ...b, pct: Math.round(b.done / b.total * 100)})).sort((a, b) => b.total - a.total);
+  const miles = [7, 14, 30, 60, 90], next = miles.find(m => m > streak);
+  return `<header class="page-head"><h1 class="title">Progress</h1><p class="sub">${esc(r.name)}</p></header>
+    <section class="card prog"><div class="prog-row"><span class="pct">${st.pct}%</span><span class="prog-text">of tasks complete</span></div>
+      <div class="bar${st.pct === 100 ? ' full' : ''}" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${st.pct}"><span style="width:${st.pct}%"></span></div></section>
+    <div class="card stat-list" style="margin-top:var(--s3)">
+      <div class="stat"><span>Position</span><b>${pos}</b></div>
+      <div class="stat"><span>Days completed</span><b>${st.daysDone} of ${st.days}</b></div>
+      <div class="stat"><span>Tasks completed</span><b>${st.done} of ${st.total}</b></div></div>
+    ${subs.length ? `<h2 class="h2">Subjects</h2><div class="card stat-list">${subs.map(s => `<div class="subj-row"><div class="top"><span>${esc(s.name)}</span><b>${s.pct}%</b></div>
+      <div class="bar${s.pct === 100 ? ' full' : ''}"><span style="width:${s.pct}%"></span></div><small>${s.done} of ${s.total} tasks</small></div>`).join('')}</div>` : ''}
+    ${studyHTML(r)}
+    <h2 class="h2">Streak</h2><div class="card streak">${icon('flame', 28)}<div>
+      ${streak ? `<b>${streak} day streak</b>` : '<b>No streak yet</b>'}
+      <p class="muted">${streak ? '' : 'Finish every task in a day to start one.'}</p>
+      <div class="miles">${miles.map(m => `<span class="mile${streak >= m ? ' hit' : ''}">${m}</span>`).join('')}</div>
+      ${next && streak ? `<p class="muted" style="margin-top:var(--s2)">${next - streak} more to reach ${next}.</p>` : ''}</div></div>`;
+}
+
+/* ---- MORE ---- */
+function viewMore() {
+  const th = S.settings.theme;
+  return `<header class="page-head"><h1 class="title">More</h1></header>${storageNotice()}
+    <h2 class="h2">Profile</h2><div class="card group" style="padding:var(--s3) var(--s4)"><label class="sr" for="nm">Your name</label>
+      <input id="nm" class="inline-input" data-setting="name" maxlength="40" value="${esc(S.settings.name)}" placeholder="Your name (optional)" autocomplete="off"></div>
+    <h2 class="h2">Tools</h2><div class="card group">
+      <button class="row" data-a="notes-open"><span class="row-main"><span class="row-title">Notes</span><span class="row-sub">${S.notes.length} note${S.notes.length === 1 ? '' : 's'}</span></span></button>
+      <button class="row" data-a="focus"><span class="row-main"><span class="row-title">Focus timer</span><span class="row-sub">Pomodoro and stopwatch</span></span></button>
+      <button class="row" data-a="templates"><span class="row-main"><span class="row-title">Templates</span><span class="row-sub">${S.templates.length} saved</span></span></button>
+      <button class="row" data-a="ai-settings"><span class="row-main"><span class="row-title">AI settings</span></span></button></div>
+    <h2 class="h2">Routines</h2><div class="card group">
+      <button class="row" data-a="routines"><span class="row-main"><span class="row-title">Manage routines</span><span class="row-sub">${S.routines.length} routine${S.routines.length === 1 ? '' : 's'}</span></span></button>
+      <button class="row" data-a="routine-new"><span class="row-main"><span class="row-title">New routine</span></span>${icon('plus', 20)}</button></div>
+    <h2 class="h2">Appearance</h2><div class="seg" role="group" aria-label="Theme">${['system', 'light', 'dark'].map(v => `<button data-a="theme" data-v="${v}" aria-pressed="${th === v}">${v[0].toUpperCase() + v.slice(1)}</button>`).join('')}</div>
+    <h2 class="h2">Data</h2><div class="card group">
+      <button class="row" data-a="export"><span class="row-main"><span class="row-title">Back up data</span><span class="row-sub">Copy everything as readable JSON</span></span></button>
+      <button class="row" data-a="import"><span class="row-main"><span class="row-title">Restore from backup</span><span class="row-sub">Merge a backup into your data</span></span></button>
+      <button class="row danger" data-a="clear-all"><span class="row-main"><span class="row-title">Clear all data</span></span></button></div>
+    <p class="muted" style="margin:var(--s6) 0 0">InflowMap keeps your plan in this browser. It works offline.</p>`;
+}
+
+/* ---- render pipeline ---- */
+const VIEWS = {home: viewHome, routine: viewRoutine, ai: () => viewAI(), progress: viewProgress, more: viewMore};
+const NAV = [['home', 'Home', 'home'], ['routine', 'Routine', 'route'], ['ai', 'AI', 'ai'], ['progress', 'Progress', 'progress'], ['more', 'More', 'more']];
+let todayIO = null;
+function render() {
+  $('#view').innerHTML = VIEWS[ui.tab]();
+  document.querySelectorAll('#nav button').forEach(b => { if (b.dataset.tab === ui.tab) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
+  afterRender();
+}
+function afterRender() {
+  if (ui.tab === 'home') {
+    const b = $('.bar span[data-to]');
+    if (b) requestAnimationFrame(() => requestAnimationFrame(() => { b.style.width = b.dataset.to + '%'; ui.lastPct = +b.dataset.to; }));
+  }
+  if (ui.pendingCollapse.size) {
+    const ids = [...ui.pendingCollapse]; ui.pendingCollapse.clear();
+    requestAnimationFrame(() => requestAnimationFrame(() => ids.forEach(id => {
+      const c = document.querySelector(`.day[data-day="${id}"]`);
+      if (c) { c.classList.remove('open'); const h = $('.day-head', c); if (h) h.setAttribute('aria-expanded', 'false'); }
+    })));
+  }
+  if (todayIO) { todayIO.disconnect(); todayIO = null; }
+  if (ui.tab === 'routine') {
+    const pill = $('.fab-today'), target = $('.dayw.is-today');
+    if (pill && target && 'IntersectionObserver' in window) {
+      todayIO = new IntersectionObserver(es => pill.classList.toggle('show', !es[0].isIntersecting));
+      todayIO.observe(target);
+    }
+    if (ui.scrollToday) {
+      ui.scrollToday = false;
+      const r = currentRoutine(), ti = r && todayInfo(r);
+      if (ui.routineView === 'all' && r) scrollToDay(ti.state === 'during' ? ti.n : 1, {instant: true, quiet: true});
+    }
+  }
+}
+function scrollToDay(n, o) {
+  o = o || {}; const el = document.getElementById('dw-' + n); if (!el) return;
+  const smooth = !o.instant && !reduceMotion();
+  el.scrollIntoView({block: 'start', behavior: smooth ? 'smooth' : 'auto'});
+  setTimeout(() => { if (Math.abs(el.getBoundingClientRect().top - (parseFloat(getComputedStyle(el).scrollMarginTop) || 0)) > 40) el.scrollIntoView({block: 'start'}); }, smooth ? 700 : 60);
+  if (!o.quiet) { el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }
+}
+function setTab(t) {
+  ui.tab = t; window.scrollTo(0, 0);
+  if (t === 'routine') ui.scrollToday = true;
+  render();
+}
+
+/* ---- sheets ---- */
+const fld = (label, input, hint) => `<label class="fld"><span>${label}</span>${input}${hint ? `<small class="hint">${hint}</small>` : ''}</label>`;
+const showErr = (form, msg) => { const e = $('.err', form); if (e) { e.textContent = msg; e.hidden = false; } };
+
+function openTaskMenu(id) {
+  const t = findTask(id); if (!t) return;
+  const d = index().dayById.get(t.dayId);
+  const item = (ic, label, a, cls) => `<button type="button" class="menu-item${cls ? ' ' + cls : ''}" data-a="${a}" data-id="${id}">${icon(ic, 20)}${label}</button>`;
+  openSheet(`<h2 id="sh-title" class="sh-title">${esc(t.title)}</h2><p class="sh-sub">Day ${d.dayNumber}, ${fmtShort(d.date)}</p>
+    ${item('edit', 'Edit', 'task-edit')}${item('dup', 'Duplicate', 'task-dup')}${item('copy', 'Copy to day…', 'task-copy')}${item('move', 'Move to day…', 'task-move')}${item('timer', 'Start focus', 'task-focus')}${item('ai', 'Ask AI about this task', 'task-ai')}${item('trash', 'Delete', 'task-del', 'danger')}`);
+}
+function bindDayHint(form, rid) {
+  const input = form.elements.day, hint = $('[data-hint="day"]', form); if (!input || !hint) return;
+  const upd = () => {
+    const n = toInt(input.value), d = (index().daysByRoutine.get(rid) || []).find(x => x.dayNumber === n);
+    hint.textContent = d ? fmtShort(d.date) : (input.value.trim() ? 'No such day in this routine' : '');
+  };
+  input.addEventListener('input', upd); upd();
+}
+function openTaskForm(o) {
+  const ix = index(), t = o.taskId ? findTask(o.taskId) : null, day = ix.dayById.get(t ? t.dayId : o.dayId);
+  if (!day) { toast('Create a routine first.'); return; }
+  const names = subjectsInRoutine(day.routineId), cur = t ? (ix.subjectById.get(t.subjectId) || {}).name || '' : '';
+  openSheet(`<h2 id="sh-title" class="sh-title">${t ? 'Edit task' : 'Add task'}</h2>
+    <form data-form="task" data-day="${day.id}" ${t ? `data-task="${t.id}"` : ''} novalidate>
+    ${t ? '' : fld('Day', `<input name="day" type="text" inputmode="numeric" value="${day.dayNumber}" autocomplete="off">`, '<span data-hint="day"></span>')}
+    ${fld('Subject', `<input name="subject" value="${esc(cur)}" maxlength="60" autocomplete="off" placeholder="e.g. বাংলা">`)}
+    ${names.length ? `<div class="chips" role="group" aria-label="Existing subjects">${names.slice(0, 12).map(n => `<button type="button" class="chip" data-a="pick-subject" data-name="${esc(n)}" aria-pressed="${n === cur}">${esc(n)}</button>`).join('')}</div>` : ''}
+    ${fld(t ? 'Task' : 'Topic', `<input name="title" value="${esc(t ? t.title : '')}" maxlength="${t ? 200 : 800}" autocomplete="off" placeholder="${t ? '' : 'e.g. সমাস'}">`, t ? '' : 'Separate several topics with commas.')}
+    <details class="more"${t && (t.estimatedMinutes || t.note) ? ' open' : ''}><summary>More options</summary>
+      ${fld('Estimated minutes', `<input name="minutes" inputmode="numeric" value="${t && t.estimatedMinutes ? t.estimatedMinutes : ''}" placeholder="Optional" autocomplete="off">`)}
+      ${fld('Note', `<input name="note" maxlength="300" value="${esc(t ? t.note || '' : '')}" placeholder="Optional reference" autocomplete="off">`)}</details>
+    <p class="err" role="alert" hidden></p>
+    <div class="actions"><button type="button" class="btn btn-quiet" data-a="sheet-close">Cancel</button><button type="submit" class="btn btn-primary">${t ? 'Save' : 'Add'}</button></div></form>`,
+    p => { const f = $('form', p); bindDayHint(f, day.routineId); const s = f.elements.subject; if (t || s.value) f.elements.title.focus({preventScroll: true}); });
+}
+function openMoveCopy(mode, id) {
+  const t = findTask(id); if (!t) return;
+  const d = index().dayById.get(t.dayId), days = index().daysByRoutine.get(d.routineId) || [], verb = mode === 'move' ? 'Move' : 'Copy';
+  openSheet(`<h2 id="sh-title" class="sh-title">${verb} to day</h2><p class="sh-sub">${esc(t.title)} is on Day ${d.dayNumber}.</p>
+    <form data-form="${mode}" data-id="${id}" novalidate>${fld('Day number', `<input name="day" type="text" inputmode="numeric" value="${Math.min(d.dayNumber + 1, days.length)}" autocomplete="off">`, `<span data-hint="day"></span>`)}
+    <p class="err" role="alert" hidden></p>
+    <div class="actions"><button type="button" class="btn btn-quiet" data-a="sheet-close">Cancel</button><button type="submit" class="btn btn-primary">${verb}</button></div></form>`,
+    p => { const f = $('form', p); bindDayHint(f, d.routineId); f.elements.day.select(); });
+}
+function openJump() {
+  const r = currentRoutine(); if (!r) return;
+  const end = addDaysISO(r.startDate, r.duration - 1);
+  openSheet(`<h2 id="sh-title" class="sh-title">Go to</h2><p class="sh-sub">${esc(r.name)}</p>
+    <form data-form="jump-day" class="jump-row" novalidate>${fld('Day number', `<input name="day" type="text" inputmode="numeric" placeholder="1 to ${r.duration}" autocomplete="off">`)}<button class="btn btn-primary" type="submit">Go</button></form>
+    <form data-form="jump-date" class="jump-row" novalidate>${fld('Date', `<input name="date" type="date" min="${r.startDate}" max="${end}" value="${todayISO() >= r.startDate && todayISO() <= end ? todayISO() : r.startDate}">`)}<button class="btn btn-primary" type="submit">Go</button></form>
+    <p class="err" role="alert" hidden></p>`);
+}
+function openRoutineList() {
+  const rows = S.routines.map(r => `<button class="row" data-a="routine-open" data-id="${r.id}"><span class="row-main"><span class="row-title">${esc(r.name)}</span>
+    <span class="row-sub">${r.duration} day${r.duration === 1 ? '' : 's'} from ${fmtShort(r.startDate)}</span></span>
+    <span class="row-tags">${r.isPrimary ? '<span class="tag">Primary</span>' : ''}${r.status !== 'active' ? `<span class="tag mute">${r.status[0].toUpperCase() + r.status.slice(1)}</span>` : ''}</span></button>`).join('');
+  openSheet(`<h2 id="sh-title" class="sh-title">Routines</h2>${rows ? `<div style="margin-top:var(--s2)">${rows}</div>` : '<p class="sh-sub">No routines yet.</p>'}
+    <div class="actions"><button type="button" class="btn btn-primary" data-a="routine-new">${icon('plus', 18)} New routine</button></div>`);
+}
+function openRoutineDetail(id) {
+  const r = S.routines.find(x => x.id === id); if (!r) return; const st = statsFor(r);
+  const item = (ic, label, a, cls) => `<button type="button" class="menu-item${cls ? ' ' + cls : ''}" data-a="${a}" data-id="${id}">${icon(ic, 20)}${label}</button>`;
+  openSheet(`<h2 id="sh-title" class="sh-title">${esc(r.name)}</h2><p class="sh-sub">${st.done} of ${st.total} tasks done, ${r.duration} days from ${fmtShort(r.startDate)}</p>
+    ${item('route', 'Open in Routine', 'r-open')}${r.isPrimary ? '' : item('check', 'Make primary', 'r-primary')}${item('edit', 'Edit details', 'r-edit')}${item('template', 'Save as template', 'r-tpl')}
+    ${r.status === 'paused' ? item('play', 'Resume', 'r-active') : r.status === 'active' ? item('calendar', 'Pause', 'r-pause') : ''}
+    ${r.status === 'completed' ? item('play', 'Reopen', 'r-active') : item('check', 'Mark completed', 'r-complete')}${item('trash', 'Delete routine', 'r-del', 'danger')}`);
+}
+function openRoutineEdit(id) {
+  const r = S.routines.find(x => x.id === id); if (!r) return;
+  openSheet(`<h2 id="sh-title" class="sh-title">Edit routine</h2><form data-form="routine-edit" data-id="${id}" novalidate>
+    ${fld('Name', `<input name="name" value="${esc(r.name)}" maxlength="60" autocomplete="off">`)}
+    ${fld('Start date', `<input name="startDate" type="date" value="${r.startDate}">`, 'Day dates shift to match. Your tasks stay on their day numbers.')}
+    ${fld('Add days to the end', `<input name="extend" type="text" inputmode="numeric" placeholder="0" autocomplete="off">`, `Currently ${r.duration} days.`)}
+    <p class="err" role="alert" hidden></p><div class="actions"><button type="button" class="btn btn-quiet" data-a="sheet-close">Cancel</button><button class="btn btn-primary" type="submit">Save</button></div></form>`);
+}
+function openRoutineNew() {
+  const others = S.routines.length > 0;
+  openSheet(`<h2 id="sh-title" class="sh-title">New routine</h2><form data-form="routine-new" novalidate>
+    ${fld('Name', `<input name="name" maxlength="60" placeholder="e.g. 90-Day Admission" autocomplete="off">`)}
+    ${fld('Start date', `<input name="startDate" type="date" value="${todayISO()}">`)}
+    <div class="seg" role="group" aria-label="Creation method"><button type="button" data-a="method" data-v="manual" aria-pressed="true">Manual</button>
+      <button type="button" data-a="method" data-v="bulk" aria-pressed="false">Bulk</button><button type="button" disabled title="AI is not built yet">AI (soon)</button></div>
+    <div data-panel="manual">${fld('Duration in days', `<input name="duration" type="text" inputmode="numeric" value="30" autocomplete="off">`, 'You can add tasks day by day afterwards.')}</div>
+    <div data-panel="bulk" hidden><label class="fld"><span>Paste your plan</span><textarea name="bulk" spellcheck="false" placeholder="Day 1&#10;বাংলা: সন্ধি, সমাস&#10;English: Tense, Voice&#10;&#10;Day 2&#10;বাংলা: কারক"></textarea></label>
+      <small class="hint" data-hint="bulk">One “Day N” line, then “Subject: topic, topic” lines.</small></div>
+    ${others ? `<label class="check"><input type="checkbox" name="primary" checked> Make this my primary routine</label>` : ''}
+    <p class="err" role="alert" hidden></p><div class="actions"><button type="button" class="btn btn-quiet" data-a="sheet-close">Cancel</button><button class="btn btn-primary" type="submit">Create routine</button></div></form>`,
+    p => {
+      const f = $('form', p), ta = f.elements.bulk, hint = $('[data-hint="bulk"]', f);
+      ta.addEventListener('input', () => {
+        if (!ta.value.trim()) { hint.textContent = 'One “Day N” line, then “Subject: topic, topic” lines.'; return; }
+        const r = parseBulk(ta.value);
+        hint.textContent = r.dayCount ? `Found ${r.dayCount} day${r.dayCount === 1 ? '' : 's'}, ${r.taskCount} task${r.taskCount === 1 ? '' : 's'}, ${r.subjectCount} subject${r.subjectCount === 1 ? '' : 's'}.${r.warnings.length ? ' ' + r.warnings.length + ' line(s) skipped.' : ''}` : 'No “Day N” lines found yet.';
+      });
+    });
+}
+function openExport() {
+  const data = {app: 'inflowmap', version: 1, exportedAt: new Date().toISOString(), settings: S.settings, routines: S.routines, days: S.days, subjects: S.subjects, tasks: S.tasks};
+  openSheet(`<h2 id="sh-title" class="sh-title">Back up data</h2><p class="sh-sub">${S.routines.length} routines, ${S.tasks.length} tasks. Copy this text and keep it somewhere safe.</p>
+    <textarea class="code" readonly aria-label="Backup data">${esc(JSON.stringify(data, null, 2))}</textarea>
+    <div class="actions"><button type="button" class="btn btn-quiet" data-a="sheet-close">Close</button><button type="button" class="btn btn-primary" data-a="copy-export">Copy</button></div>`);
+}
+
+/* ---- event handlers ---- */
+const H = {
+  tab: el => setTab(el.dataset.tab),
+  'sheet-close': () => closeSheet(),
+  'confirm-yes': () => { const cb = confirmCb; confirmCb = null; closeSheet(); if (cb) cb(); },
+  'toast-action': () => { const t = $('#toast'), cb = t._cb; t.classList.remove('show'); if (cb) cb(); },
+  toggle: el => {
+    const row = el.closest('.task'), t = findTask(el.dataset.id); if (!t) return;
+    row.classList.toggle('done', !t.completed); el.setAttribute('aria-checked', String(!t.completed));
+    cmd.toggleTask(t.id, {renderDelay: reduceMotion() ? 0 : 380});
+  },
+  'task-menu': el => openTaskMenu(el.dataset.id),
+  'task-edit': el => { closeSheet(true); openTaskForm({taskId: el.dataset.id}); },
+  'task-dup': async el => { closeSheet(); const t = findTask(el.dataset.id); if (!t) return; const d = index().dayById.get(t.dayId); const r = await cmd.copyTask(t.id, d.dayNumber); toast(r.error || 'Task duplicated.'); },
+  'task-copy': el => openMoveCopy('copy', el.dataset.id),
+  'task-move': el => openMoveCopy('move', el.dataset.id),
+  'task-del': async el => {
+    closeSheet(); const t = await cmd.deleteTask(el.dataset.id);
+    if (t) toast('Task deleted.', {label: 'Undo', ms: 6000, onAction: () => cmd.restoreTask(t)});
+  },
+  'pick-subject': el => {
+    const f = el.closest('form'); f.elements.subject.value = el.dataset.name;
+    f.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', String(c === el))); f.elements.title.focus();
+  },
+  'add-task': el => openTaskForm({dayId: el.dataset.day}),
+  'add-task-today': () => { const r = primaryRoutine(), ti = r && todayInfo(r); if (ti && ti.day) openTaskForm({dayId: ti.day.id}); },
+  'toggle-completed': () => { ui.showCompleted = !ui.showCompleted; render(); },
+  'go-routine': () => { ui.viewRoutineId = null; setTab('routine'); },
+  'day-toggle': el => {
+    const card = el.closest('.day'), open = !card.classList.contains('open');
+    card.classList.toggle('open', open); el.setAttribute('aria-expanded', String(open)); ui.dayOpen[el.dataset.id] = open;
+  },
+  'seg-view': el => { ui.routineView = el.dataset.v; ui.scrollToday = el.dataset.v === 'all'; render(); },
+  'scroll-today': () => { const r = currentRoutine(), ti = r && todayInfo(r); if (ti && ti.state === 'during') scrollToDay(ti.n); },
+  'add-day': async () => { const r = currentRoutine(); if (r) { const res = await cmd.updateRoutine(r.id, {extend: 1}); if (res.error) toast(res.error); else requestAnimationFrame(() => window.scrollTo({top: document.body.scrollHeight})); } },
+  jump: () => openJump(),
+  routines: () => openRoutineList(),
+  'routine-new': () => openRoutineNew(),
+  'routine-open': el => openRoutineDetail(el.dataset.id),
+  method: el => {
+    const f = el.closest('form'); f.querySelectorAll('[data-a="method"]').forEach(b => b.setAttribute('aria-pressed', String(b === el)));
+    f.querySelectorAll('[data-panel]').forEach(p => { p.hidden = p.dataset.panel !== el.dataset.v; });
+  },
+  'r-open': el => { closeSheet(); ui.viewRoutineId = el.dataset.id; ui.routineView = 'all'; setTab('routine'); },
+  'r-primary': async el => { closeSheet(); await cmd.setPrimary(el.dataset.id); toast('Primary routine updated.'); },
+  'r-edit': el => openRoutineEdit(el.dataset.id),
+  'r-pause': async el => { closeSheet(); await cmd.updateRoutine(el.dataset.id, {status: 'paused'}); },
+  'r-active': async el => { closeSheet(); await cmd.updateRoutine(el.dataset.id, {status: 'active'}); },
+  'r-complete': async el => { closeSheet(); await cmd.updateRoutine(el.dataset.id, {status: 'completed'}); },
+  'r-del': el => {
+    const r = S.routines.find(x => x.id === el.dataset.id); if (!r) return;
+    openConfirm({title: 'Delete this routine?', text: `“${r.name}” and all of its days and tasks will be removed. This can't be undone.`, label: 'Delete routine', danger: true, onConfirm: async () => { await cmd.deleteRoutine(r.id); toast('Routine deleted.'); }});
+  },
+  theme: el => { setSetting('theme', el.dataset.v); applyTheme(); render(); },
+  export: () => openExport(),
+  'copy-export': async el => {
+    const ta = $('.code', sheetEl); ta.focus(); ta.select();
+    try { await navigator.clipboard.writeText(ta.value); toast('Backup copied.'); }
+    catch (e) { try { document.execCommand('copy') ? toast('Backup copied.') : toast('Select the text and copy it manually.'); } catch (e2) { toast('Select the text and copy it manually.'); } }
+  },
+  'clear-all': () => openConfirm({title: 'Clear all data?', text: 'Every routine, day, task and completion will be removed from this browser. This can\'t be undone.', label: 'Clear everything', danger: true, onConfirm: async () => { await cmd.clearAll(); toast('All data cleared.'); }})
+};
+document.addEventListener('click', e => { const el = e.target.closest('[data-a]'); if (el && H[el.dataset.a] && !el.disabled) H[el.dataset.a](el, e); });
+
+const FORMS = {
+  async task(f) {
+    const v = n => f.elements[n] ? f.elements[n].value : '';
+    let res;
+    if (f.dataset.task) res = await cmd.updateTask(f.dataset.task, {subject: v('subject'), title: v('title'), minutes: v('minutes'), note: v('note')});
+    else {
+      const d0 = index().dayById.get(f.dataset.day), n = toInt(v('day'));
+      const target = d0 && (index().daysByRoutine.get(d0.routineId) || []).find(d => d.dayNumber === n);
+      if (!target) return showErr(f, 'Choose a day that exists in this routine.');
+      res = await cmd.addTasks(target.id, {subject: v('subject'), title: v('title'), minutes: v('minutes'), note: v('note')});
+      if (!res.error) { closeSheet(); toast(`Added ${res.count} task${res.count === 1 ? '' : 's'} to Day ${n}.`); return; }
+    }
+    if (res.error) return showErr(f, res.error);
+    closeSheet(); toast('Task saved.');
+  },
+  async move(f) { const r = await cmd.moveTask(f.dataset.id, toInt(f.elements.day.value)); if (r.error) return showErr(f, r.error); closeSheet(); toast(`Moved to Day ${r.day.dayNumber}.`); },
+  async copy(f) { const r = await cmd.copyTask(f.dataset.id, toInt(f.elements.day.value)); if (r.error) return showErr(f, r.error); closeSheet(); toast(`Copied to Day ${r.day.dayNumber}.`); },
+  async 'routine-new'(f) {
+    const bulk = !f.querySelector('[data-panel="bulk"]').hidden; let duration, items = null;
+    if (bulk) {
+      const p = parseBulk(f.elements.bulk.value);
+      if (!p.dayCount) return showErr(f, 'Add at least one “Day N” line with subjects and topics.');
+      duration = p.maxDay; items = p.days;
+    } else duration = toInt(f.elements.duration.value);
+    const res = await cmd.createRoutine({name: f.elements.name.value, startDate: f.elements.startDate.value, duration, items, makePrimary: f.elements.primary ? f.elements.primary.checked : true});
+    if (res.error) return showErr(f, res.error);
+    closeSheet(); ui.viewRoutineId = res.id; ui.routineView = 'all';
+    setTab(S.routines.find(r => r.id === res.id).isPrimary ? 'home' : 'routine'); toast('Routine created.');
+  },
+  async 'routine-edit'(f) {
+    const ext = f.elements.extend.value.trim() ? toInt(f.elements.extend.value) : 0;
+    if (Number.isNaN(ext)) return showErr(f, 'Enter a number of days to add.');
+    const res = await cmd.updateRoutine(f.dataset.id, {name: f.elements.name.value, startDate: f.elements.startDate.value, extend: ext || undefined});
+    if (res.error) return showErr(f, res.error); closeSheet(); toast('Routine updated.');
+  },
+  'jump-day'(f) {
+    const r = currentRoutine(), n = toInt(f.elements.day.value);
+    if (!(n >= 1 && n <= r.duration)) return showErr(f.parentElement, `Enter a day from 1 to ${r.duration}.`);
+    jumpTo(r, n);
+  },
+  'jump-date'(f) {
+    const r = currentRoutine(), v = f.elements.date.value;
+    if (!isValidISO(v)) return showErr(f.parentElement, 'Choose a date.');
+    const n = diffDays(v, r.startDate) + 1;
+    if (n < 1 || n > r.duration) return showErr(f.parentElement, 'That date is outside this routine.');
+    jumpTo(r, n);
+  }
+};
+function jumpTo(r, n) {
+  closeSheet(); ui.routineView = 'all';
+  const d = (index().daysByRoutine.get(r.id) || []).find(x => x.dayNumber === n);
+  if (d && d.status === 'complete') ui.dayOpen[d.id] = true;
+  render(); requestAnimationFrame(() => scrollToDay(n));
+}
+document.addEventListener('submit', e => { const f = e.target.closest('[data-form]'); if (f && FORMS[f.dataset.form]) { e.preventDefault(); FORMS[f.dataset.form](f); } });
+document.addEventListener('change', e => { if (e.target.matches('[data-setting="name"]')) setSetting('name', clean(e.target.value, 40)); });
+document.addEventListener('keydown', e => {
+  if (!sheetEl) return;
+  if (e.key === 'Escape') { closeSheet(); return; }
+  if (e.key === 'Tab') {
+    const f = [...sheetEl.querySelectorAll('button:not([disabled]),input,textarea,summary,[tabindex="0"]')].filter(x => x.offsetParent !== null);
+    if (!f.length) return; const first = f[0], last = f[f.length - 1];
+    if (e.shiftKey && (document.activeElement === first || document.activeElement === sheetEl.firstElementChild)) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  }
+});
+
+/* long-press (touch) and right-click open the task menu */
+let lp = null;
+document.addEventListener('pointerdown', e => {
+  const row = e.target.closest('.task'); if (!row || e.target.closest('button') || e.pointerType === 'mouse') return;
+  lp = {x: e.clientX, y: e.clientY, fired: false, t: setTimeout(() => { lp.fired = true; if (navigator.vibrate) try { navigator.vibrate(8); } catch (x) {} openTaskMenu(row.dataset.task); }, 520)};
+});
+document.addEventListener('pointermove', e => { if (lp && !lp.fired && Math.hypot(e.clientX - lp.x, e.clientY - lp.y) > 10) { clearTimeout(lp.t); lp = null; } });
+['pointerup', 'pointercancel'].forEach(ev => document.addEventListener(ev, () => { if (lp) { clearTimeout(lp.t); lp = null; } }));
+document.addEventListener('contextmenu', e => { const row = e.target.closest('.task'); if (row) { e.preventDefault(); if (!lp || !lp.fired) openTaskMenu(row.dataset.task); } });
+document.addEventListener('visibilitychange', () => { if (!document.hidden && !sheetEl) render(); });
+
+/* ---- boot ---- */
+function applyTheme() {
+  const t = S.settings.theme, root = document.documentElement;
+  if (t === 'light' || t === 'dark') root.setAttribute('data-theme', t); else root.removeAttribute('data-theme');
+}
+async function boot() {
+  $('#nav').innerHTML = '<div class="nav-in">' + NAV.map(([k, label, ic]) => `<button data-a="tab" data-tab="${k}">${icon(ic)}<span>${label}</span></button>`).join('') + '</div>';
+  await db.open(); await loadAll(); applyTheme(); render();
+}
+</script>
+<script>
+'use strict';
+/* =====================================================================
+   Phases 4–7: search, notes, focus + sessions, templates, import/export,
+   AI (provider adapters → service → validated tools → preview → approve
+   → transaction → change history → undo)
+   ===================================================================== */
+Object.assign(ICONS, {
+  search: '<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/>',
+  gear: '<circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/>',
+  history: '<path d="M4 12a8 8 0 1 0 2.5-5.8"/><path d="M4 4v4h4"/><path d="M12 8v4l3 2"/>',
+  send: '<path d="M5 12l14-7-5 14-2.5-5.5z"/>', stop: '<rect x="7" y="7" width="10" height="10" rx="2"/>',
+  back: '<path d="M15 6l-6 6 6 6"/>', note: '<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h6M9 17h6"/>',
+  timer: '<circle cx="12" cy="13" r="7"/><path d="M12 9v4l2.5 2M9 3h6"/>',
+  template: '<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M4 10h16M10 10v10"/>',
+  import: '<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>'
+});
+const subjName = t => (index().subjectById.get(t.subjectId) || {}).name || 'Other';
+const fmtDur = sec => { sec = Math.round(sec); const h = Math.floor(sec / 3600), m = Math.floor(sec % 3600 / 60); return h ? `${h}h ${m}m` : m ? `${m}m` : `${sec}s`; };
+const fmtWhen = ts => new Date(ts).toLocaleString('en-GB', {day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit'});
+const dayLabel = d => `Day ${d.dayNumber}, ${fmtShort(d.date)}`;
+
+/* ------------------------- rich text sanitizer ------------------------- */
+const NOTE_TAGS = new Set(['P', 'BR', 'DIV', 'H2', 'H3', 'B', 'STRONG', 'I', 'EM', 'U', 'UL', 'OL', 'LI']);
+const DROP_TAGS = new Set(['SCRIPT', 'STYLE', 'IFRAME', 'OBJECT', 'EMBED', 'TEMPLATE', 'SVG', 'MATH']);
+function sanitizeHTML(html) {
+  const doc = new DOMParser().parseFromString('<body>' + String(html || '') + '</body>', 'text/html');
+  const out = document.createElement('div');
+  (function walk(src, dst) {
+    src.childNodes.forEach(n => {
+      if (n.nodeType === 3) dst.appendChild(document.createTextNode(n.nodeValue));
+      else if (n.nodeType === 1) {
+        const tag = n.tagName.toUpperCase();
+        if (NOTE_TAGS.has(tag)) {
+          const el = document.createElement(tag.toLowerCase());
+          if (tag === 'UL' && n.classList.contains('cl')) el.className = 'cl';
+          if (tag === 'LI' && n.getAttribute('data-done') === '1') el.setAttribute('data-done', '1');
+          walk(n, el); dst.appendChild(el);
+        } else if (!DROP_TAGS.has(tag)) walk(n, dst);
+      }
+    });
+  })(doc.body, out);
+  return out.innerHTML;
+}
+const noteText = html => (new DOMParser().parseFromString(String(html || ''), 'text/html').body.textContent || '').replace(/\s+/g, ' ').trim();
+
+/* ------------------------------- search ------------------------------- */
+function searchAll(q) {
+  q = clean(q, 80).toLowerCase(); if (!q) return [];
+  const ix = index(), rById = new Map(S.routines.map(r => [r.id, r])), res = [];
+  S.routines.filter(r => r.name.toLowerCase().includes(q)).slice(0, 10).forEach(r => res.push({type: 'routine', id: r.id, label: r.name, sub: `${r.duration} days`}));
+  const dm = bnDigits(q).match(/^(?:day\s*)?(\d{1,4})$/);
+  if (dm) S.routines.forEach(r => { const d = (ix.daysByRoutine.get(r.id) || []).find(x => x.dayNumber === +dm[1]); if (d) res.push({type: 'day', id: d.id, label: `Day ${d.dayNumber}`, sub: `${r.name}, ${fmtShort(d.date)}`}); });
+  let n = 0;
+  for (const t of S.tasks) {
+    const sn = subjName(t);
+    if (t.title.toLowerCase().includes(q) || (t.note || '').toLowerCase().includes(q) || sn.toLowerCase().includes(q)) {
+      const d = ix.dayById.get(t.dayId); if (!d) continue; const r = rById.get(d.routineId);
+      res.push({type: 'task', id: t.id, label: t.title, sub: `${r ? r.name : ''}, Day ${d.dayNumber}, ${sn}`});
+      if (++n >= 30) break;
+    }
+  }
+  n = 0;
+  for (const nt of S.notes) {
+    if ((nt.title || '').toLowerCase().includes(q) || noteText(nt.content).toLowerCase().includes(q)) { res.push({type: 'note', id: nt.id, label: nt.title || 'Untitled', sub: 'Note'}); if (++n >= 15) break; }
+  }
+  return res;
+}
+function searchHTML(q) {
+  if (!q.trim()) return '';
+  const res = searchAll(q); if (!res.length) return '<p class="muted" style="padding:var(--s3) 0">Nothing found.</p>';
+  const titles = {routine: 'Routines', day: 'Days', task: 'Tasks', note: 'Notes'};
+  return ['routine', 'day', 'task', 'note'].map(k => { const g = res.filter(r => r.type === k); return g.length ? `<h3 class="h2" style="margin:var(--s3) 0 0">${titles[k]}</h3>` + g.map(r => `<button class="row" data-a="sr-go" data-type="${r.type}" data-id="${r.id}"><span class="row-main"><span class="row-title">${esc(r.label)}</span><span class="row-sub">${esc(r.sub)}</span></span></button>`).join('') : ''; }).join('');
+}
+function openSearch() {
+  openSheet(`<h2 id="sh-title" class="sh-title">Search</h2><input class="inline-input" id="sq" type="search" placeholder="Tasks, days, routines, notes" autocomplete="off" aria-label="Search" style="margin-top:var(--s2)"><div id="sres"></div>`,
+    p => { const i = $('#sq', p), out = $('#sres', p); i.addEventListener('input', () => { out.innerHTML = searchHTML(i.value); }); });
+}
+
+/* -------------------------------- notes -------------------------------- */
+let pageEl = null, noteDraft = null, noteTimer = null;
+function openPage(html, onMount) {
+  closePage(); pageEl = document.createElement('div'); pageEl.className = 'page'; pageEl.setAttribute('role', 'dialog'); pageEl.setAttribute('aria-modal', 'true');
+  pageEl.innerHTML = `<div class="page-in">${html}</div>`; document.body.appendChild(pageEl); if (onMount) onMount(pageEl);
+}
+function closePage() { if (pageEl) { pageEl.remove(); pageEl = null; } }
+const notesListHTML = q => {
+  const list = S.notes.slice().sort((a, b) => b.updatedAt - a.updatedAt).filter(n => !q || (n.title || '').toLowerCase().includes(q) || noteText(n.content).toLowerCase().includes(q));
+  if (!S.notes.length) return `<section class="empty"><h2>No notes yet</h2><p>Keep revision notes and references here.</p><button class="btn btn-primary" data-a="note-new">Create note</button></section>`;
+  if (!list.length) return '<p class="muted" style="padding:var(--s4) 0">No notes match your search.</p>';
+  return list.map(n => `<button class="note-card" data-a="note-open" data-id="${n.id}"><b>${esc(n.title || 'Untitled')}</b><span>${esc(noteText(n.content).slice(0, 160)) || '&nbsp;'}</span><small>${fmtWhen(n.updatedAt)}</small></button>`).join('');
+};
+function openNotes() {
+  openPage(`<div class="page-bar"><button class="icon-btn" data-a="page-close" aria-label="Back">${icon('back')}</button><h1>Notes</h1><button class="icon-btn" data-a="note-new" aria-label="New note">${icon('plus')}</button></div>
+    <input class="inline-input" id="nq" type="search" placeholder="Search notes" aria-label="Search notes" autocomplete="off"><div id="nlist">${notesListHTML('')}</div>`,
+    p => { $('#nq', p).addEventListener('input', e => { $('#nlist', p).innerHTML = notesListHTML(e.target.value.toLowerCase()); }); });
+}
+function refreshNotesList() { const l = $('#nlist'); if (l && pageEl && $('#nq', pageEl)) l.innerHTML = notesListHTML($('#nq').value.toLowerCase()); }
+function openNote(id) {
+  const ex = id ? S.notes.find(n => n.id === id) : null;
+  noteDraft = ex ? {...ex} : {id: uid(), title: '', content: '', tags: [], createdAt: Date.now(), updatedAt: Date.now(), isNew: true};
+  openPage(`<div class="page-bar"><button class="icon-btn" data-a="note-back" aria-label="Back to notes">${icon('back')}</button><h1 class="sr">Note</h1><span style="flex:1"></span>
+    ${ex ? `<button class="icon-btn" data-a="note-del" aria-label="Delete note">${icon('trash')}</button>` : ''}</div>
+    <input class="note-title" id="nt" maxlength="120" placeholder="Title" value="${esc(noteDraft.title)}" aria-label="Note title" autocomplete="off">
+    <div class="toolbar" role="toolbar" aria-label="Formatting">
+      <button type="button" data-cmd="bold" aria-label="Bold"><b>B</b></button><button type="button" data-cmd="italic" aria-label="Italic"><i>I</i></button>
+      <button type="button" data-cmd="h2" aria-label="Heading">H</button><button type="button" data-cmd="ul" aria-label="Bulleted list">•</button>
+      <button type="button" data-cmd="ol" aria-label="Numbered list">1.</button><button type="button" data-cmd="check" aria-label="Checklist">${icon('check', 18)}</button></div>
+    <div class="editor" id="ed" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Note content" data-ph="Start writing…" spellcheck="true">${sanitizeHTML(noteDraft.content)}</div>`,
+    p => {
+      const ed = $('#ed', p), ti = $('#nt', p);
+      const sched = () => { clearTimeout(noteTimer); noteTimer = setTimeout(saveNote, 700); };
+      ed.addEventListener('input', sched); ti.addEventListener('input', sched);
+      ed.addEventListener('paste', e => { e.preventDefault(); document.execCommand('insertText', false, (e.clipboardData || window.clipboardData).getData('text/plain')); });
+      $('.toolbar', p).addEventListener('mousedown', e => e.preventDefault());
+      p.addEventListener('click', e => {
+        const b = e.target.closest('[data-cmd]'); if (b) { editorCmd(b.dataset.cmd, ed); sched(); return; }
+        const li = e.target.closest('#ed ul.cl > li');
+        if (li && e.clientX - li.getBoundingClientRect().left < 32) { if (li.getAttribute('data-done') === '1') li.removeAttribute('data-done'); else li.setAttribute('data-done', '1'); sched(); }
+      });
+      if (!ex) ti.focus({preventScroll: true});
+    });
+}
+function editorCmd(cmd, ed) {
+  ed.focus();
+  if (cmd === 'bold') document.execCommand('bold');
+  else if (cmd === 'italic') document.execCommand('italic');
+  else if (cmd === 'h2') { const blk = document.queryCommandValue('formatBlock'); document.execCommand('formatBlock', false, /h2/i.test(blk) ? 'p' : 'h2'); }
+  else if (cmd === 'ul') document.execCommand('insertUnorderedList');
+  else if (cmd === 'ol') document.execCommand('insertOrderedList');
+  else if (cmd === 'check') {
+    document.execCommand('insertUnorderedList');
+    const sel = getSelection(), nd = sel && sel.anchorNode && (sel.anchorNode.nodeType === 1 ? sel.anchorNode : sel.anchorNode.parentElement), ul = nd && nd.closest('ul');
+    if (ul && ed.contains(ul)) ul.classList.add('cl');
+  }
+}
+async function saveNote() {
+  clearTimeout(noteTimer); if (!noteDraft || !pageEl) return;
+  const ed = $('#ed', pageEl), ti = $('#nt', pageEl); if (!ed || !ti) return;
+  const content = sanitizeHTML(ed.innerHTML), title = clean(ti.value, 120);
+  if (noteDraft.isNew && !title && !noteText(content)) return;
+  const rec = {id: noteDraft.id, title, content, tags: noteDraft.tags || [], createdAt: noteDraft.createdAt, updatedAt: Date.now()};
+  noteDraft.isNew = false; noteDraft.title = title; noteDraft.content = content;
+  await commit({put: {notes: [rec]}}); refreshNotesList();
+}
+
+/* ------------------------- focus + study sessions ------------------------- */
+const fx = {notified: null};
+const activeSess = () => S.settings.activeSession || null;
+const elapsedMs = a => a.elapsedBefore + (a.runningSince ? Date.now() - a.runningSince : 0);
+const fmtClock = ms => { const s = Math.max(0, Math.floor(ms / 1000)), h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60); return (h ? h + ':' + pad(m) : pad(m)) + ':' + pad(s % 60); };
+function tickNow() {
+  const a = activeSess(); if (!a) return; const el = elapsedMs(a);
+  document.querySelectorAll('[data-clock]').forEach(n => { n.textContent = n.dataset.clock === 'focus' && a.mode === 'pomodoro' ? fmtClock(Math.max(0, a.targetSec * 1000 - el)) : fmtClock(el); });
+  const st = $('[data-clockstate]'), up = a.mode === 'pomodoro' && el >= a.targetSec * 1000;
+  if (st) st.textContent = up ? "Time's up. Finish to save your session." : (a.runningSince ? '' : 'Paused');
+  if (up && a.runningSince && fx.notified !== a.id) { fx.notified = a.id; toast("Time's up. Finish to save your session.", {ms: 6000}); try { navigator.vibrate && navigator.vibrate([200, 100, 200]); } catch (e) {} }
+}
+setInterval(tickNow, 250);
+const sessLabel = a => { const t = a.taskId && findTask(a.taskId); return t ? t.title : 'Focus session'; };
+function continueCard() {
+  const a = activeSess(); if (!a) return '';
+  return `<section class="card cont" aria-label="Continue studying"><div><p class="muted">Continue studying</p><p class="cont-task">${esc(sessLabel(a))}</p>
+    <p class="muted">Studied <span data-clock="home">${fmtClock(elapsedMs(a))}</span></p></div><button class="btn btn-primary" data-a="focus">Continue</button></section>`;
+}
+function openFocus(o) {
+  o = o || {}; const a = activeSess();
+  if (a) {
+    openSheet(`<h2 id="sh-title" class="sh-title">${a.mode === 'pomodoro' ? 'Pomodoro' : 'Stopwatch'}</h2><p class="sh-sub">${esc(sessLabel(a))}</p>
+      <p class="clock" data-clock="focus">${fmtClock(0)}</p><p class="muted center" data-clockstate style="min-height:24px"></p>
+      <div class="actions"><button type="button" class="btn btn-primary" data-a="focus-toggle">${a.runningSince ? 'Pause' : 'Resume'}</button><button type="button" class="btn btn-quiet" data-a="focus-finish">Finish</button></div>
+      <button type="button" class="menu-item danger" data-a="focus-discard" style="margin-top:var(--s2)">${icon('trash', 20)}Discard session</button>`, tickNow);
+    return;
+  }
+  const r = primaryRoutine(), ti = r && todayInfo(r); let opts = '';
+  if (ti && ti.day) (index().tasksByDay.get(ti.day.id) || []).filter(t => !t.completed).forEach(t => { opts += `<option value="${t.id}"${o.taskId === t.id ? ' selected' : ''}>${esc(subjName(t))}: ${esc(t.title)}</option>`; });
+  if (o.taskId && !opts.includes(`value="${o.taskId}"`)) { const t = findTask(o.taskId); if (t) opts = `<option value="${t.id}" selected>${esc(subjName(t))}: ${esc(t.title)}</option>` + opts; }
+  const mode = ui.focusMode || 'pomodoro', min = ui.focusMin || 25;
+  openSheet(`<h2 id="sh-title" class="sh-title">Focus</h2><form data-form="focus-start" novalidate><input type="hidden" name="mode" value="${mode}">
+    <div class="seg" role="group" aria-label="Timer type"><button type="button" data-a="focus-mode" data-v="pomodoro" aria-pressed="${mode === 'pomodoro'}">Pomodoro</button><button type="button" data-a="focus-mode" data-v="stopwatch" aria-pressed="${mode === 'stopwatch'}">Stopwatch</button></div>
+    <div data-panel="pomodoro" ${mode === 'pomodoro' ? '' : 'hidden'}><div class="chips" role="group" aria-label="Presets">${[25, 45, 60].map(m => `<button type="button" class="chip" data-a="focus-preset" data-m="${m}" aria-pressed="${min === m}">${m} min</button>`).join('')}</div>
+      ${fld('Minutes', `<input name="min" type="text" inputmode="numeric" value="${min}" autocomplete="off">`)}</div>
+    <p class="hint" data-panel="stopwatch" ${mode === 'stopwatch' ? '' : 'hidden'}>Runs until you finish it.</p>
+    ${fld('Task (optional)', `<select name="task"><option value="">No task</option>${opts}</select>`)}
+    <p class="err" role="alert" hidden></p><div class="actions"><button type="button" class="btn btn-quiet" data-a="sheet-close">Cancel</button><button type="submit" class="btn btn-primary">Start</button></div></form>`);
+}
+function saveActive(a) { setSetting('activeSession', a); }
+async function finishSession() {
+  const a = activeSess(); if (!a) return; const sec = Math.round(elapsedMs(a) / 1000);
+  saveActive(null); closeSheet();
+  if (sec < 30) { toast("That session was under 30 seconds, so it wasn't saved."); render(); return; }
+  await commit({put: {sessions: [{id: a.id, taskId: a.taskId || null, startedAt: a.startedAt, endedAt: Date.now(), duration: sec}]}});
+  toast(`Saved ${fmtDur(sec)} of study time.`);
+}
+function studyHTML(r) {
+  if (!S.sessions.length) return '';
+  const byDay = new Map(); S.sessions.forEach(s => { const k = toISO(new Date(s.startedAt)); byDay.set(k, (byDay.get(k) || 0) + s.duration); });
+  const days = []; for (let i = 6; i >= 0; i--) { const k = addDaysISO(todayISO(), -i); days.push({k, v: byDay.get(k) || 0}); }
+  const max = Math.max(1, ...days.map(d => d.v)), week = days.reduce((s, d) => s + d.v, 0), total = S.sessions.reduce((s, x) => s + x.duration, 0);
+  const cutoff = Date.now() - 7 * 86400000, bySubj = new Map();
+  S.sessions.forEach(s => { if (s.startedAt < cutoff) return; const t = s.taskId && findTask(s.taskId); if (t) bySubj.set(subjName(t), (bySubj.get(subjName(t)) || 0) + s.duration); });
+  const subs = [...bySubj].sort((a, b) => b[1] - a[1]).slice(0, 4);
+  return `<h2 class="h2">Study time</h2><div class="card stat-list">
+    <div class="stat"><span>Today</span><b>${fmtDur(byDay.get(todayISO()) || 0)}</b></div><div class="stat"><span>Last 7 days</span><b>${fmtDur(week)}</b></div><div class="stat"><span>All time</span><b>${fmtDur(total)}</b></div>
+    <div class="bars" role="img" aria-label="Study time, last 7 days">${days.map(d => `<div><i style="height:${Math.round(d.v / max * 44)}px"></i><span>${parseISO(d.k).toLocaleDateString('en-GB', {weekday: 'narrow'})}</span></div>`).join('')}</div>
+    ${subs.map(([n, v]) => `<div class="stat"><span>${esc(n)}</span><b>${fmtDur(v)}</b></div>`).join('')}</div>`;
+}
+
+/* ------------------------------ templates ------------------------------ */
+function templateFromRoutine(r) {
+  const ix = index(), days = [];
+  (ix.daysByRoutine.get(r.id) || []).forEach(d => { const ts = ix.tasksByDay.get(d.id) || []; if (ts.length) days.push({dayNumber: d.dayNumber, items: ts.map(t => ({subject: subjName(t), title: t.title, minutes: t.estimatedMinutes, note: t.note || ''}))}); });
+  return {id: uid(), name: r.name, data: {duration: r.duration, days}, createdAt: Date.now()};
+}
+const tplCounts = t => ({days: t.data.duration, tasks: t.data.days.reduce((s, d) => s + d.items.length, 0)});
+function openTemplates() {
+  openSheet(`<h2 id="sh-title" class="sh-title">Templates</h2>${S.templates.length ? S.templates.map(t => { const c = tplCounts(t); return `<button class="row" data-a="tpl-open" data-id="${t.id}"><span class="row-main"><span class="row-title">${esc(t.name)}</span><span class="row-sub">${c.days} days, ${c.tasks} tasks</span></span></button>`; }).join('') : '<p class="sh-sub">No templates yet. Open a routine and choose “Save as template”.</p>'}
+    <div class="actions"><button type="button" class="btn btn-quiet" data-a="sheet-close">Close</button></div>`);
+}
+function openTemplate(id) {
+  const t = S.templates.find(x => x.id === id); if (!t) return; const c = tplCounts(t);
+  openSheet(`<h2 id="sh-title" class="sh-title">${esc(t.name)}</h2><p class="sh-sub">${c.days} days, ${c.tasks} tasks</p><form data-form="tpl-use" data-id="${id}" novalidate>
+    ${fld('New routine name', `<input name="name" maxlength="60" value="${esc(t.name)}" autocomplete="off">`)}${fld('Start date', `<input name="startDate" type="date" value="${todayISO()}">`)}
+    ${S.routines.length ? '<label class="check"><input type="checkbox" name="primary"> Make this my primary routine</label>' : ''}<p class="err" role="alert" hidden></p>
+    <div class="actions"><button type="button" class="btn btn-danger" data-a="tpl-del" data-id="${id}">Delete</button><button class="btn btn-primary" type="submit">Create routine</button></div></form>`);
+}
+
+/* ------------------------------ import / export ------------------------------ */
+let dl = null, importState = null;
+function buildBackup() {
+  return {app: 'inflowmap', version: 2, exportedAt: new Date().toISOString(), settings: {theme: S.settings.theme, name: S.settings.name},
+    routines: S.routines, days: S.days, subjects: S.subjects, tasks: S.tasks, notes: S.notes, sessions: S.sessions, templates: S.templates};
+}
+function openExport() {
+  const json = JSON.stringify(buildBackup(), null, 2);
+  openSheet(`<h2 id="sh-title" class="sh-title">Back up data</h2><p class="sh-sub">${S.routines.length} routines, ${S.tasks.length} tasks, ${S.notes.length} notes, ${S.sessions.length} sessions. Your AI key is never included.</p>
+    <textarea class="code" readonly aria-label="Backup data">${esc(json)}</textarea>
+    <div class="actions"><button type="button" class="btn btn-quiet" data-a="sheet-close">Close</button>${dl ? '<button type="button" class="btn btn-quiet" data-a="download-export">Download</button>' : ''}<button type="button" class="btn btn-primary" data-a="copy-export">Copy</button></div>`);
+}
+const isStr = v => typeof v === 'string' && v.length > 0 && v.length < 200, isNum = v => typeof v === 'number' && isFinite(v);
+function validateBackup(txt) {
+  let o; try { o = JSON.parse(txt); } catch (e) { return {error: 'This backup file could not be read.'}; }
+  if (!o || typeof o !== 'object' || o.app !== 'inflowmap') return {error: 'This backup file could not be read.'};
+  if (![1, 2].includes(o.version)) return {error: "This backup was made by a version of InflowMap this page can't read."};
+  let dropped = 0; const arr = k => Array.isArray(o[k]) ? o[k] : [];
+  const keep = (list, ok) => list.filter(x => { const g = x && typeof x === 'object' && isStr(x.id) && ok(x); if (!g) dropped++; return g; });
+  const routines = keep(arr('routines'), r => typeof r.name === 'string' && r.name.trim() && isValidISO(r.startDate) && Number.isInteger(r.duration) && r.duration >= 1 && r.duration <= MAX_DAYS && ['active', 'paused', 'completed'].includes(r.status))
+    .map(r => ({id: r.id, name: clean(r.name, 60), startDate: r.startDate, duration: r.duration, status: r.status, isPrimary: !!r.isPrimary, createdAt: isNum(r.createdAt) ? r.createdAt : Date.now(), updatedAt: isNum(r.updatedAt) ? r.updatedAt : Date.now()}));
+  const rIds = new Set([...routines.map(r => r.id), ...S.routines.map(r => r.id)]);
+  const days = keep(arr('days'), d => isStr(d.routineId) && rIds.has(d.routineId) && Number.isInteger(d.dayNumber) && d.dayNumber >= 1 && d.dayNumber <= MAX_DAYS && isValidISO(d.date))
+    .map(d => ({id: d.id, routineId: d.routineId, dayNumber: d.dayNumber, date: d.date, status: d.status === 'complete' ? 'complete' : 'open'}));
+  const dIds = new Set([...days.map(d => d.id), ...S.days.map(d => d.id)]);
+  const byName = new Map(S.subjects.map(s => [s.name.toLowerCase(), s.id])), remap = new Map();
+  const subjects = keep(arr('subjects'), s => typeof s.name === 'string' && s.name.trim()).map(s => ({id: s.id, name: clean(s.name, 60)}))
+    .filter(s => { const ex = byName.get(s.name.toLowerCase()); if (ex && ex !== s.id) { remap.set(s.id, ex); return false; } return true; });
+  const sIds = new Set([...subjects.map(s => s.id), ...S.subjects.map(s => s.id)]);
+  const tasks = keep(arr('tasks'), t => typeof t.title === 'string' && t.title.trim() && isStr(t.dayId) && dIds.has(t.dayId) && isStr(t.subjectId) && (sIds.has(t.subjectId) || remap.has(t.subjectId)) && typeof t.completed === 'boolean')
+    .map(t => ({id: t.id, dayId: t.dayId, subjectId: remap.get(t.subjectId) || t.subjectId, title: clean(t.title, 200), completed: t.completed, completedAt: isNum(t.completedAt) ? t.completedAt : null,
+      estimatedMinutes: Number.isInteger(t.estimatedMinutes) ? t.estimatedMinutes : null, note: clean(t.note, 300), createdAt: isNum(t.createdAt) ? t.createdAt : Date.now(), updatedAt: isNum(t.updatedAt) ? t.updatedAt : Date.now(), sortOrder: isNum(t.sortOrder) ? t.sortOrder : 0}));
+  const notes = keep(arr('notes'), n => typeof n.content === 'string').map(n => ({id: n.id, title: clean(n.title, 120), content: sanitizeHTML(n.content), tags: Array.isArray(n.tags) ? n.tags.filter(x => typeof x === 'string').slice(0, 20) : [], createdAt: isNum(n.createdAt) ? n.createdAt : Date.now(), updatedAt: isNum(n.updatedAt) ? n.updatedAt : Date.now()}));
+  const sessions = keep(arr('sessions'), s => isNum(s.startedAt) && isNum(s.endedAt) && isNum(s.duration) && s.duration >= 0).map(s => ({id: s.id, taskId: typeof s.taskId === 'string' ? s.taskId : null, startedAt: s.startedAt, endedAt: s.endedAt, duration: s.duration}));
+  const templates = keep(arr('templates'), t => typeof t.name === 'string' && t.data && Array.isArray(t.data.days) && Number.isInteger(t.data.duration)).map(t => ({id: t.id, name: clean(t.name, 60), data: t.data, createdAt: isNum(t.createdAt) ? t.createdAt : Date.now()}));
+  return {clean: {routines, days, subjects, tasks, notes, sessions, templates}, dropped};
+}
+function planImport(c, strategy) {
+  const put = {}, stats = {added: 0, same: 0, conflicts: 0, overwritten: 0};
+  const hasPrimary = S.routines.some(r => r.isPrimary);
+  for (const k of ['routines', 'days', 'subjects', 'tasks', 'notes', 'sessions', 'templates']) {
+    const cur = new Map(S[k].map(x => [x.id, x]));
+    c[k].forEach(r0 => {
+      const r = k === 'routines' && hasPrimary && !cur.has(r0.id) ? {...r0, isPrimary: false} : r0, ex = cur.get(r.id);
+      if (!ex) { (put[k] = put[k] || []).push(r); stats.added++; return; }
+      if (JSON.stringify(ex) === JSON.stringify(r)) { stats.same++; return; }
+      stats.conflicts++;
+      const take = strategy === 'theirs' || (strategy === 'newer' && isNum(r.updatedAt) && isNum(ex.updatedAt) && r.updatedAt > ex.updatedAt);
+      if (take) { (put[k] = put[k] || []).push(k === 'routines' ? {...r, isPrimary: ex.isPrimary} : r); stats.overwritten++; }
+    });
+  }
+  return {put, stats};
+}
+const importCounts = c => `${c.routines.length} routine${c.routines.length === 1 ? '' : 's'}, ${c.tasks.length} tasks, ${c.notes.length} notes, ${c.sessions.length} sessions`;
+function openImport() {
+  importState = null;
+  openSheet(`<h2 id="sh-title" class="sh-title">Restore from backup</h2><p class="sh-sub">Nothing is changed until you confirm. Existing data is merged, never blindly overwritten.</p>
+    <form data-form="import-check" novalidate>${fld('Backup file', '<input type="file" name="file" accept=".json,application/json">')}
+    ${fld('Or paste the backup text', '<textarea name="text" spellcheck="false" style="min-height:110px"></textarea>')}
+    <p class="err" role="alert" hidden></p><div id="imp-prev"></div>
+    <div class="actions"><button type="button" class="btn btn-quiet" data-a="sheet-close">Cancel</button><button type="submit" class="btn btn-primary">Check backup</button></div></form>`,
+    p => { const f = $('form', p); f.elements.file.addEventListener('change', () => { const file = f.elements.file.files[0]; if (!file) return; const rd = new FileReader(); rd.onload = () => { f.elements.text.value = String(rd.result || ''); }; rd.onerror = () => showErr(f, 'This backup file could not be read.'); rd.readAsText(file); }); });
+}
+function importPreviewHTML(c, dropped) {
+  return `<div class="card" style="padding:var(--s3) var(--s4);margin-top:var(--s3)"><p style="font-weight:600">${importCounts(c)}</p>${dropped ? `<p class="muted">${dropped} invalid record${dropped === 1 ? '' : 's'} will be skipped.</p>` : ''}
+    <label class="fld"><span>If a record already exists and differs</span><select name="strategy"><option value="newer">Keep the newer version</option><option value="mine">Keep what I have</option><option value="theirs">Use the backup</option></select></label>
+    <div class="actions"><button type="button" class="btn btn-primary" data-a="import-apply">Import</button></div></div>`;
+}
+
+/* ============================== AI ============================== */
+const ai = {messages: [], cards: new Map(), busy: false, ctl: null, sim: null, draft: null, revisions: [], routineOps: [], stream: '', sample: null, seq: 0};
+const AI_ACTIONS = ['createTask', 'updateTask', 'deleteTask', 'moveTask', 'copyTask', 'duplicateTask', 'completeTask', 'createNote'];
+const need = (c, m) => { if (!c) throw new Error(m); };
+
+/* ---- simulation: proposals are applied to a private copy, never to real state ---- */
+function makeSim(r) {
+  const ix = index(), days = ix.daysByRoutine.get(r.id) || [];
+  const sim = {r, days, byNum: new Map(days.map(d => [d.dayNumber, d])), byId: new Map(days.map(d => [d.id, d])), tasks: new Map(), orig: new Map(), created: new Set(), notes: [], count: 0};
+  days.forEach(d => (ix.tasksByDay.get(d.id) || []).forEach(t => { const o = {...t, subjectName: subjName(t)}; sim.orig.set(t.id, o); sim.tasks.set(t.id, {...o}); }));
+  return sim;
+}
+const cloneSim = s => ({...s, tasks: new Map([...s.tasks].map(([k, v]) => [k, {...v}])), created: new Set(s.created), notes: s.notes.slice()});
+const dayFor = (sim, n) => { n = toInt(n); const d = sim.byNum.get(n); need(d, `Day ${n} doesn't exist (this routine has ${sim.days.length} days).`); return d; };
+const taskFor = (sim, id) => { const t = sim.tasks.get(String(id)); need(t, `Task "${id}" was not found. Use getDay or getTasks to get valid taskId values.`); return t; };
+const EXEC = {
+  createTask(sim, a) {
+    const d = dayFor(sim, a.dayNumber), v = validateTask({subject: a.subject, title: a.title, minutes: a.minutes, note: a.note}, false); need(!v.error, v.error);
+    const now = Date.now(), t = {id: uid(), dayId: d.id, subjectId: null, subjectName: v.value.subject, title: v.value.titles[0], completed: false, completedAt: null, estimatedMinutes: v.value.minutes, note: v.value.note, createdAt: now, updatedAt: now, sortOrder: 1e6 + sim.count++};
+    sim.tasks.set(t.id, t); sim.created.add(t.id);
+  },
+  updateTask(sim, a) {
+    const t = taskFor(sim, a.taskId);
+    const v = validateTask({subject: a.subject != null ? a.subject : t.subjectName, title: a.title != null ? a.title : t.title, minutes: a.minutes === undefined ? t.estimatedMinutes : a.minutes, note: a.note === undefined ? t.note : a.note}, false); need(!v.error, v.error);
+    t.subjectName = v.value.subject; t.title = v.value.titles[0]; t.estimatedMinutes = v.value.minutes; t.note = v.value.note;
+  },
+  deleteTask(sim, a) { const t = taskFor(sim, a.taskId); sim.tasks.delete(t.id); sim.created.delete(t.id); },
+  moveTask(sim, a) { const t = taskFor(sim, a.taskId), d = dayFor(sim, a.targetDayNumber); t.dayId = d.id; },
+  copyTask(sim, a) {
+    const t = taskFor(sim, a.taskId), d = dayFor(sim, a.targetDayNumber), now = Date.now();
+    const c = {...t, id: uid(), dayId: d.id, completed: false, completedAt: null, createdAt: now, updatedAt: now, sortOrder: 1e6 + sim.count++}; sim.tasks.set(c.id, c); sim.created.add(c.id);
+  },
+  duplicateTask(sim, a) { const t = taskFor(sim, a.taskId); EXEC.copyTask(sim, {taskId: t.id, targetDayNumber: sim.byId.get(t.dayId).dayNumber}); },
+  completeTask(sim, a) { const t = taskFor(sim, a.taskId), v = a.completed !== false; t.completed = v; t.completedAt = v ? Date.now() : null; },
+  createNote(sim, a) {
+    const title = clean(a.title, 120), body = String(a.content || '').slice(0, 20000); need(title || body, 'A note needs a title or content.');
+    sim.notes.push({id: uid(), title: title || 'Untitled', content: sanitizeHTML(body.split(/\n/).map(l => '<p>' + esc(l) + '</p>').join('')), tags: [], createdAt: Date.now(), updatedAt: Date.now()});
+  }
+};
+function buildPlan(sim) {
+  const created = [], modified = [], deleted = [];
+  sim.tasks.forEach((t, id) => {
+    const o = sim.orig.get(id);
+    if (!o) created.push(t);
+    else if (t.dayId !== o.dayId || t.title !== o.title || t.subjectName !== o.subjectName || t.estimatedMinutes !== o.estimatedMinutes || (t.note || '') !== (o.note || '') || t.completed !== o.completed) modified.push({o, t});
+  });
+  sim.orig.forEach((o, id) => { if (!sim.tasks.has(id)) deleted.push(o); });
+  return {sim, created, modified, deleted, notes: sim.notes, has: !!(created.length || modified.length || deleted.length || sim.notes.length)};
+}
+function planLines(plan) {
+  const byDay = new Map(), lbl = t => `${t.subjectName}: ${t.title}`;
+  const add = (dayId, sign, text) => { const d = plan.sim.byId.get(dayId), n = d ? d.dayNumber : 0; if (!byDay.has(n)) byDay.set(n, {n, date: d && d.date, lines: []}); byDay.get(n).lines.push({sign, text}); };
+  plan.deleted.forEach(o => add(o.dayId, '−', lbl(o)));
+  plan.modified.forEach(({o, t}) => {
+    if (o.dayId !== t.dayId) { add(o.dayId, '−', lbl(o)); add(t.dayId, '+', lbl(t)); }
+    else {
+      if (o.title !== t.title || o.subjectName !== t.subjectName) add(t.dayId, '~', `${lbl(o)} → ${lbl(t)}`);
+      else if (o.estimatedMinutes !== t.estimatedMinutes || (o.note || '') !== (t.note || '')) add(t.dayId, '~', `${lbl(t)} (details changed)`);
+      if (o.completed !== t.completed) add(t.dayId, '~', `${lbl(t)}: mark ${t.completed ? 'done' : 'not done'}`);
+    }
+  });
+  plan.created.forEach(t => add(t.dayId, '+', lbl(t)));
+  return [...byDay.values()].sort((a, b) => a.n - b.n);
+}
+function planSummary(plan) {
+  const moved = plan.modified.filter(m => m.o.dayId !== m.t.dayId).length, edited = plan.modified.length - moved, parts = [];
+  if (moved) parts.push(`${moved} moved`); if (plan.created.length) parts.push(`${plan.created.length} added`); if (plan.deleted.length) parts.push(`${plan.deleted.length} removed`);
+  if (edited) parts.push(`${edited} edited`); if (plan.notes.length) parts.push(`${plan.notes.length} note${plan.notes.length === 1 ? '' : 's'} created`);
+  return parts.join(', ') || 'No changes';
+}
+async function applyPlan(plan, desc) {
+  const sim = plan.sim, put = {tasks: [], notes: [], subjects: [], aiChanges: []}, del = {tasks: []}, touch = new Set(), prev = [];
+  const subj = subjectResolver(put), orders = new Map();
+  const orderFor = dayId => { if (!orders.has(dayId)) orders.set(dayId, nextOrder(dayId)); const v = orders.get(dayId); orders.set(dayId, v + 1); return v; };
+  for (const {o} of plan.modified.concat(plan.deleted.map(o => ({o})))) { const cur = findTask(o.id); if (!cur || cur.updatedAt !== o.updatedAt) throw new Error('Your plan changed after these changes were prepared. Ask again so they match the current plan.'); }
+  for (const t of plan.created.concat(plan.modified.map(m => m.t))) if (!index().dayById.has(t.dayId)) throw new Error('A day in these changes no longer exists.');
+  const row = (t, sortOrder) => ({id: t.id, dayId: t.dayId, subjectId: subj(t.subjectName), title: t.title, completed: t.completed, completedAt: t.completedAt, estimatedMinutes: t.estimatedMinutes, note: t.note || '', createdAt: t.createdAt, updatedAt: Date.now(), sortOrder});
+  plan.modified.forEach(({o, t}) => { prev.push(findTask(o.id)); touch.add(o.dayId); put.tasks.push(row(t, t.dayId !== o.dayId ? orderFor(t.dayId) : t.sortOrder)); });
+  plan.deleted.forEach(o => { prev.push(findTask(o.id)); touch.add(o.dayId); del.tasks.push(o.id); });
+  plan.created.forEach(t => put.tasks.push(row(t, orderFor(t.dayId))));
+  put.notes = plan.notes.slice();
+  const rec = {id: uid(), description: desc || planSummary(plan), previousState: {tasks: prev}, newState: {createdTaskIds: plan.created.map(t => t.id), modifiedTaskIds: plan.modified.map(m => m.t.id), deletedTaskIds: plan.deleted.map(o => o.id), createdNoteIds: plan.notes.map(n => n.id)}, createdAt: Date.now(), revertedAt: null};
+  put.aiChanges = [rec];
+  await commit({put, del, touchDays: [...touch]});
+  return rec;
+}
+function routineOpLabel(op) { return {pause: 'Paused', resume: 'Resumed', reopen: 'Reopened', complete: 'Marked complete', rename: 'Renamed / rescheduled', extend: `Extended by ${op.days} day(s)`, setPrimary: 'Set as primary'}[op.action] || op.action; }
+async function applyRoutineOp(c) {
+  const before = S.routines.find(x => x.id === c.routineId); need(before, 'That routine no longer exists.');
+  const op = c.op; let res;
+  if (op.action === 'setPrimary') await cmd.setPrimary(c.routineId);
+  else if (op.action === 'pause') res = await cmd.updateRoutine(c.routineId, {status: 'paused'});
+  else if (op.action === 'resume' || op.action === 'reopen') res = await cmd.updateRoutine(c.routineId, {status: 'active'});
+  else if (op.action === 'complete') res = await cmd.updateRoutine(c.routineId, {status: 'completed'});
+  else if (op.action === 'rename') res = await cmd.updateRoutine(c.routineId, {name: op.name, startDate: op.startDate});
+  else if (op.action === 'extend') res = await cmd.updateRoutine(c.routineId, {extend: op.days});
+  need(!res || !res.error, res && res.error);
+  const rec = {id: uid(), description: `${routineOpLabel(op)} — ${before.name}`, previousState: {routine: before}, newState: {routineId: c.routineId}, createdAt: Date.now(), revertedAt: null};
+  await commit({put: {aiChanges: [rec]}});
+  return rec;
+}
+async function acceptRevision(taskId, offsets) {
+  const t = findTask(taskId); if (!t) return {error: 'That task no longer exists.'};
+  const day = index().dayById.get(t.dayId), r = S.routines.find(x => x.id === day.routineId), sim = makeSim(r); let skipped = 0;
+  offsets.slice().sort((a, b) => a - b).forEach(o => { const n = day.dayNumber + o; if (n > r.duration) skipped++; else EXEC.createTask(sim, {dayNumber: n, subject: subjName(t), title: 'Revision: ' + t.title}); });
+  const plan = buildPlan(sim); if (!plan.has) return {error: "Those days are beyond the end of this routine."};
+  const rec = await applyPlan(plan, `Revision for "${t.title}"`);
+  return {rec, skipped};
+}
+async function undoAIChange(id) {
+  const rec = S.aiChanges.find(x => x.id === id); if (!rec || rec.revertedAt) return false;
+  const ns = rec.newState;
+  if (ns.createdRoutineId) { await cmd.deleteRoutine(ns.createdRoutineId); await commit({put: {aiChanges: [{...rec, revertedAt: Date.now()}]}}); return true; }
+  if (rec.previousState.routine) { await commit({put: {routines: [rec.previousState.routine], aiChanges: [{...rec, revertedAt: Date.now()}]}}); return true; }
+  const touch = new Set();
+  (ns.createdTaskIds || []).concat(ns.modifiedTaskIds || []).forEach(t => { const c = findTask(t); if (c) touch.add(c.dayId); });
+  rec.previousState.tasks.forEach(t => touch.add(t.dayId));
+  await commit({put: {tasks: rec.previousState.tasks.slice(), aiChanges: [{...rec, revertedAt: Date.now()}]}, del: {tasks: (ns.createdTaskIds || []).slice(), notes: (ns.createdNoteIds || []).slice()}, touchDays: [...touch]});
+  return true;
+}
+
+/* ---- context + tools ---- */
+function aiRoutine() {
+  const c = ui.aiCtx; if (c) { const d = c.type === 'day' ? index().dayById.get(c.id) : index().dayById.get((findTask(c.id) || {}).dayId); const r = d && S.routines.find(x => x.id === d.routineId); if (r) return r; }
+  return primaryRoutine();
+}
+function aiFocus(r) {
+  const c = ui.aiCtx, ix = index(); if (!c) return null;
+  if (c.type === 'day') { const d = ix.dayById.get(c.id); return d && d.routineId === r.id ? {type: 'day', dayNumber: d.dayNumber, date: d.date} : null; }
+  const t = findTask(c.id), d = t && ix.dayById.get(t.dayId); return d ? {type: 'task', taskId: t.id, title: t.title, subject: subjName(t), dayNumber: d.dayNumber} : null;
+}
+function buildSystem(r) {
+  const ti = todayInfo(r), st = statsFor(r), ix = index(), today = ti.day ? (ix.tasksByDay.get(ti.day.id) || []).map(t => ({id: t.id, subject: subjName(t), title: t.title, done: t.completed})) : [];
+  const ctx = {today: todayISO(), routine: {name: r.name, startDate: r.startDate, durationDays: r.duration, status: r.status, todayDayNumber: ti.state === 'during' ? ti.n : null, state: ti.state, tasksDone: st.done, tasksTotal: st.total}, focus: aiFocus(r), todayTasks: today};
+  return `You are the planning assistant inside InflowMap, a personal study planner. The user writes Bengali, English, or a mix; answer in the language they use. Keep answers short and practical.
+RULES:
+- You cannot change data. To change the plan, call proposeChanges once with all actions. The app shows the user a before/after diff and applies it only after approval. Never say changes were applied; say you have prepared them for approval.
+- Read first: use getDay / getTasks to get real taskId values. Never invent IDs. Day numbers are 1-based within the routine.
+- "this day" / "এই দিন" and "this task" / "এটা" refer to CONTEXT.focus. If focus is null and the target is unclear, ask.
+- Creating a NEW routine: first ask only the questions still missing (goal, subjects, duration, daily study time, constraints, revision preference). When you have enough, call createRoutineDraft. Do not draft from incomplete information.
+- Keep workload balanced across days. For revision ideas use createRevisionSuggestion (a suggestion the user can accept or edit).
+- Do not add priority labels.
+CONTEXT: ${JSON.stringify(ctx)}`;
+}
+function simDayTasks(sim, dayId) { return [...sim.tasks.values()].filter(t => t.dayId === dayId).sort((a, b) => a.sortOrder - b.sortOrder); }
+function buildTools(r) {
+  const S_ = () => ai.sim, row = t => ({id: t.id, subject: t.subjectName, title: t.title, done: t.completed, minutes: t.estimatedMinutes});
+  const num = {type: 'integer'};
+  return [
+    {name: 'getRoutine', description: 'Returns the routine name, dates, duration, today\'s day number, overall progress and the list of subjects.', inputSchema: {type: 'object', properties: {}},
+      execute: () => { const st = statsFor(r), ti = todayInfo(r); return {name: r.name, startDate: r.startDate, durationDays: r.duration, todayDayNumber: ti.state === 'during' ? ti.n : null, state: ti.state, tasksDone: st.done, tasksTotal: st.total, daysCompleted: st.daysDone, subjects: subjectsInRoutine(r.id)}; }},
+    {name: 'getDay', description: 'Returns one day with its tasks (id, subject, title, done, minutes). Use the ids in proposeChanges.', inputSchema: {type: 'object', properties: {dayNumber: num}, required: ['dayNumber']},
+      execute: a => { const d = dayFor(S_(), a.dayNumber); return {dayNumber: d.dayNumber, date: d.date, tasks: simDayTasks(S_(), d.id).map(row)}; }},
+    {name: 'getTasks', description: 'Lists tasks between two day numbers (max 150), optionally filtered by subject or completion.', inputSchema: {type: 'object', properties: {fromDay: num, toDay: num, subject: {type: 'string'}, completed: {type: 'boolean'}}},
+      execute: a => { const s = S_(), from = toInt(a.fromDay) || 1, to = toInt(a.toDay) || s.days.length, out = [];
+        for (const t of s.tasks.values()) { const d = s.byId.get(t.dayId); if (!d || d.dayNumber < from || d.dayNumber > to) continue; if (a.subject && t.subjectName.toLowerCase() !== String(a.subject).toLowerCase()) continue; if (typeof a.completed === 'boolean' && t.completed !== a.completed) continue; out.push({...row(t), day: d.dayNumber}); }
+        out.sort((x, y) => x.day - y.day); return {count: out.length, tasks: out.slice(0, 150)}; }},
+    {name: 'getProgress', description: 'Returns completion percentage, per-subject progress, streak and recent daily completion.', inputSchema: {type: 'object', properties: {}},
+      execute: () => { const st = statsFor(r), ix = index(); return {percent: st.pct, tasksDone: st.done, tasksTotal: st.total, daysCompleted: st.daysDone, streak: streakFor(r), subjects: [...st.bySubj].map(([id, b]) => ({subject: (ix.subjectById.get(id) || {}).name, done: b.done, total: b.total}))}; }},
+    {name: 'getStudySessions', description: 'Returns study time in minutes per day and per subject for the last N days (default 7).', inputSchema: {type: 'object', properties: {days: num}},
+      execute: a => { const n = Math.min(90, toInt(a.days) || 7), cut = Date.now() - n * 86400000, byDay = {}, bySub = {};
+        S.sessions.filter(s => s.startedAt >= cut).forEach(s => { const k = toISO(new Date(s.startedAt)); byDay[k] = (byDay[k] || 0) + Math.round(s.duration / 60); const t = s.taskId && findTask(s.taskId); if (t) bySub[subjName(t)] = (bySub[subjName(t)] || 0) + Math.round(s.duration / 60); }); return {minutesByDay: byDay, minutesBySubject: bySub}; }},
+    {name: 'searchApp', description: 'Searches tasks, days, routines and notes by text.', inputSchema: {type: 'object', properties: {query: {type: 'string'}}, required: ['query']},
+      execute: a => searchAll(String(a.query || '')).slice(0, 15).map(x => ({type: x.type, label: x.label, where: x.sub}))},
+    {name: 'proposeChanges', description: 'Queue changes for the user to review and approve. actions: createTask{dayNumber,subject,title,minutes?}, updateTask{taskId,title?,subject?,minutes?,note?}, deleteTask{taskId}, moveTask{taskId,targetDayNumber}, copyTask{taskId,targetDayNumber}, duplicateTask{taskId}, completeTask{taskId,completed}, createNote{title,content}. All actions are validated together; if one is invalid nothing is queued.',
+      inputSchema: {type: 'object', properties: {summary: {type: 'string'}, actions: {type: 'array', items: {type: 'object', properties: {action: {type: 'string', enum: AI_ACTIONS}, taskId: {type: 'string'}, dayNumber: num, targetDayNumber: num, subject: {type: 'string'}, title: {type: 'string'}, minutes: num, note: {type: 'string'}, completed: {type: 'boolean'}, content: {type: 'string'}}, required: ['action']}}}, required: ['actions']},
+      execute: input => {
+        const acts = Array.isArray(input.actions) ? input.actions : null; need(acts && acts.length, 'actions must be a non-empty array.'); need(acts.length <= 80, 'Too many actions in one call (max 80).');
+        const c = cloneSim(ai.sim);
+        acts.forEach((a, i) => { const fn = a && EXEC[a.action]; if (!fn) throw new Error(`Action ${i + 1}: unknown action "${a && a.action}".`); try { fn(c, a); } catch (e) { throw new Error(`Action ${i + 1} (${a.action}) is invalid: ${e.message} Nothing was queued; fix it and call proposeChanges again.`); } });
+        ai.sim = c; ai.summary = clean(input.summary, 200) || ai.summary; return {ok: true, queued: acts.length, note: 'Queued for user approval. Do not say it has been applied.'};
+      }},
+    {name: 'createRoutineDraft', description: 'Show the user a draft of a NEW routine for confirmation (only after gathering enough information). days: [{dayNumber, items:[{subject,title,minutes?}]}].',
+      inputSchema: {type: 'object', properties: {name: {type: 'string'}, durationDays: num, startDate: {type: 'string'}, days: {type: 'array', items: {type: 'object', properties: {dayNumber: num, items: {type: 'array', items: {type: 'object', properties: {subject: {type: 'string'}, title: {type: 'string'}, minutes: num}, required: ['subject', 'title']}}}, required: ['dayNumber', 'items']}}}, required: ['name', 'durationDays', 'days']},
+      execute: a => {
+        const name = clean(a.name, 60), dur = toInt(a.durationDays), start = a.startDate && isValidISO(a.startDate) ? a.startDate : todayISO();
+        need(name, 'name is required.'); need(dur >= 1 && dur <= MAX_DAYS, `durationDays must be 1 to ${MAX_DAYS}.`); need(Array.isArray(a.days) && a.days.length, 'days must be a non-empty array.');
+        const items = new Map(); let count = 0;
+        a.days.forEach((d, i) => { const n = toInt(d.dayNumber); need(n >= 1 && n <= dur, `days[${i}].dayNumber must be between 1 and ${dur}.`); need(Array.isArray(d.items), `days[${i}].items must be an array.`);
+          d.items.forEach((it, j) => { const v = validateTask({subject: it.subject, title: it.title, minutes: it.minutes}, false); need(!v.error, `days[${i}].items[${j}]: ${v.error}`); if (!items.has(n)) items.set(n, []); items.get(n).push({subject: v.value.subject, title: v.value.titles[0], minutes: v.value.minutes}); count++; }); });
+        need(count > 0 && count <= 3000, 'The draft must contain between 1 and 3000 tasks.');
+        ai.draft = {name, duration: dur, startDate: start, items, count}; return {ok: true, note: 'A preview was shown to the user. Ask if they want changes.'};
+      }},
+    {name: 'createRevisionSuggestion', description: 'Suggest revision sessions for a completed task at day offsets such as [2,7,21]. The user can accept, edit or reject.', inputSchema: {type: 'object', properties: {taskId: {type: 'string'}, offsets: {type: 'array', items: num}}, required: ['taskId', 'offsets']},
+      execute: a => { const t = findTask(String(a.taskId)); need(t, 'Task not found. Use getDay/getTasks for valid ids.'); need(Array.isArray(a.offsets) && a.offsets.length, 'offsets must be a non-empty array.');
+        const offs = [...new Set(a.offsets.map(toInt))]; need(offs.every(o => o >= 1 && o <= 365) && offs.length <= 6, 'offsets must be up to 6 integers between 1 and 365.'); ai.revisions.push({taskId: t.id, offsets: offs.sort((x, y) => x - y)}); return {ok: true, note: 'Suggestion shown to the user.'}; }}
+  ];
+}
+
+/* ---- provider adapters: Service → Adapter → (Gemini | Groq | OpenRouter | Mistral | built-in Claude) ---- */
+function toGeminiSchema(s) { if (Array.isArray(s)) return s.map(toGeminiSchema); if (!s || typeof s !== 'object') return s; const o = {}; for (const [k, v] of Object.entries(s)) o[k] = k === 'type' && typeof v === 'string' ? v.toUpperCase() : toGeminiSchema(v); return o; }
+async function geminiRun({system, turns, tools, signal}) {
+  const key = S.settings.geminiKey, model = S.settings.geminiModel || 'gemini-3.8-flash';
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
+  const contents = turns.map(t => ({role: t.role === 'assistant' ? 'model' : 'user', parts: [{text: t.content}]}));
+  const decl = tools.map(t => ({name: t.name, description: t.description, parameters: t.inputSchema && Object.keys(t.inputSchema.properties || {}).length ? toGeminiSchema(t.inputSchema) : undefined}));
+  for (let round = 0; round < 7; round++) {
+    let res;
+    try { res = await fetch(url, {method: 'POST', signal, headers: {'content-type': 'application/json', 'x-goog-api-key': key}, body: JSON.stringify({systemInstruction: {parts: [{text: system}]}, contents, tools: [{functionDeclarations: decl}]})}); }
+    catch (e) { if (e && e.name === 'AbortError') throw {code: 'cancelled'}; throw {code: 'network'}; }
+    if (!res.ok) {
+      let msg = ''; try { const eb = await res.json(); msg = (eb.error && eb.error.message) || ''; } catch (e) {}
+      throw {code: res.status === 429 ? 'rate_limited' : (res.status === 404 ? 'bad_model' : [400, 401, 403].includes(res.status) ? 'bad_key' : 'upstream_error'), message: msg};
+    }
+    const data = await res.json(), parts = (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) || [], calls = parts.filter(p => p.functionCall);
+    if (!calls.length) { const text = parts.map(p => p.text || '').join('').trim(); if (!text) throw {code: 'upstream_error'}; return {text}; }
+    contents.push({role: 'model', parts}); const out = [];
+    for (const c of calls) {
+      const tool = tools.find(t => t.name === c.functionCall.name); let result;
+      try { need(tool, 'Unknown tool.'); result = await tool.execute(c.functionCall.args || {}, {signal}); } catch (e) { result = {error: String((e && e.message) || e)}; }
+      out.push({functionResponse: {name: c.functionCall.name, response: {result}}});
+    }
+    contents.push({role: 'user', parts: out});
+  }
+  throw {code: 'upstream_error'};
+}
+const hostedPage = !!(window.claude && typeof window.claude.use === 'function');
+async function geminiTest(key, model) {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
+  let res; try { res = await fetch(url, {method: 'POST', headers: {'content-type': 'application/json', 'x-goog-api-key': key}, body: JSON.stringify({contents: [{parts: [{text: 'Say OK.'}]}]})}); }
+  catch (e) { return {ok: false, message: hostedPage ? "This preview page can't reach Gemini directly — download the file and open it in your own browser, or use Claude (built-in) below." : "Couldn't reach Gemini from here. Check your connection."}; }
+  if (res.ok) return {ok: true};
+  let msg = 'That key or model was not accepted.'; try { const b = await res.json(); if (b.error && b.error.message) msg = b.error.message; } catch (e) {}
+  return {ok: false, message: msg};
+}
+async function claudeRun({system, turns, tools, signal, onText}) {
+  return ai.sample([{role: 'user', content: system}, ...turns], {tools: tools.map(t => ({name: t.name, description: t.description, inputSchema: t.inputSchema, execute: t.execute})), cache: false, signal, onText: u => onText && onText(u.text)});
+}
+/* Generic adapter for any OpenAI-compatible chat-completions API (Groq, OpenRouter, Mistral, and similar). */
+async function openAICompatRun({url, apiKey, model, extraHeaders, system, turns, tools, signal}) {
+  const messages = [{role: 'system', content: system}, ...turns.map(t => ({role: t.role, content: t.content}))];
+  const toolDefs = tools.map(t => ({type: 'function', function: {name: t.name, description: t.description, parameters: (t.inputSchema && Object.keys(t.inputSchema.properties || {}).length) ? t.inputSchema : {type: 'object', properties: {}}}}));
+  for (let round = 0; round < 7; round++) {
+    let res;
+    try { res = await fetch(url, {method: 'POST', signal, headers: {'content-type': 'application/json', authorization: `Bearer ${apiKey}`, ...(extraHeaders || {})}, body: JSON.stringify({model, messages, tools: toolDefs, tool_choice: 'auto'})}); }
+    catch (e) { if (e && e.name === 'AbortError') throw {code: 'cancelled'}; throw {code: 'network'}; }
+    if (!res.ok) {
+      let msg = ''; try { const eb = await res.json(); msg = (eb.error && (eb.error.message || eb.error)) || eb.message || ''; } catch (e) {}
+      throw {code: res.status === 429 ? 'rate_limited' : (res.status === 404 ? 'bad_model' : [400, 401, 403].includes(res.status) ? 'bad_key' : 'upstream_error'), message: typeof msg === 'string' ? msg : ''};
+    }
+    const data = await res.json(), msg2 = data.choices && data.choices[0] && data.choices[0].message;
+    if (!msg2) throw {code: 'upstream_error'};
+    const calls = msg2.tool_calls || [];
+    if (!calls.length) { const text = (msg2.content || '').trim(); if (!text) throw {code: 'upstream_error'}; return {text}; }
+    messages.push({role: 'assistant', content: msg2.content || null, tool_calls: calls});
+    for (const c of calls) {
+      const tool = tools.find(t => t.name === c.function.name); let result, args = {};
+      try { args = JSON.parse(c.function.arguments || '{}'); } catch (e) {}
+      try { need(tool, 'Unknown tool.'); result = await tool.execute(args, {signal}); } catch (e) { result = {error: String((e && e.message) || e)}; }
+      messages.push({role: 'tool', tool_call_id: c.id, content: JSON.stringify(result)});
+    }
+  }
+  throw {code: 'upstream_error'};
+}
+async function openAICompatTest(url, apiKey, model, extraHeaders) {
+  let res; try { res = await fetch(url, {method: 'POST', headers: {'content-type': 'application/json', authorization: `Bearer ${apiKey}`, ...(extraHeaders || {})}, body: JSON.stringify({model, messages: [{role: 'user', content: 'Say OK.'}], max_tokens: 5})}); }
+  catch (e) { return {ok: false, message: hostedPage ? "This preview page can't reach outside APIs directly — download the file and open it in your own browser, or use Claude (built-in) below." : "Couldn't reach this provider from here. Check your connection."}; }
+  if (res.ok) return {ok: true};
+  let msg = 'That key or model was not accepted.'; try { const b = await res.json(); if (b.error) msg = (b.error.message || b.error) || msg; } catch (e) {}
+  return {ok: false, message: typeof msg === 'string' ? msg : 'That key or model was not accepted.'};
+}
+const PROVIDER_DEFS = {
+  groq: {label: 'Groq', url: 'https://api.groq.com/openai/v1/chat/completions', keyField: 'groqKey', modelField: 'groqModel', defaultModel: 'llama-3.3-70b-versatile', models: ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant', 'openai/gpt-oss-120b', 'openai/gpt-oss-20b', 'qwen/qwen3-32b']},
+  openrouter: {label: 'OpenRouter', url: 'https://openrouter.ai/api/v1/chat/completions', keyField: 'openrouterKey', modelField: 'openrouterModel', defaultModel: 'openai/gpt-4o-mini', headers: () => ({'HTTP-Referer': (location.origin || 'https://inflowmap.app'), 'X-Title': 'InflowMap'}), models: ['openai/gpt-4o-mini', 'anthropic/claude-3.5-haiku', 'google/gemini-2.5-flash', 'meta-llama/llama-3.3-70b-instruct']},
+  mistral: {label: 'Mistral', url: 'https://api.mistral.ai/v1/chat/completions', keyField: 'mistralKey', modelField: 'mistralModel', defaultModel: 'mistral-large-latest', models: ['mistral-large-latest', 'mistral-small-latest', 'open-mixtral-8x22b']}
+};
+const aiProviders = {
+  gemini: {label: 'Gemini', available: () => !!S.settings.geminiKey, run: geminiRun}
+};
+Object.entries(PROVIDER_DEFS).forEach(([id, d]) => {
+  aiProviders[id] = {label: d.label, available: () => !!S.settings[d.keyField],
+    run: args => openAICompatRun({url: d.url, apiKey: S.settings[d.keyField], model: S.settings[d.modelField] || d.defaultModel, extraHeaders: d.headers ? d.headers() : null, ...args})};
+});
+aiProviders.claude = {label: 'Claude (built-in)', available: () => !!ai.sample, run: claudeRun};
+/* Order to try providers in. The user's chosen "preferred" provider (if configured) always goes first; the rest act as automatic fallbacks. */
+const PROVIDER_ORDER = ['gemini', 'groq', 'openrouter', 'mistral', 'claude'];
+function availableProviderList() {
+  const ids = PROVIDER_ORDER.filter(id => aiProviders[id] && aiProviders[id].available());
+  const pref = S.settings.aiProvider;
+  return (pref && ids.includes(pref)) ? [pref, ...ids.filter(x => x !== pref)] : ids;
+}
+function aiProviderName() { return availableProviderList()[0] || null; }
+function aiErrorText(e, label) {
+  if (!navigator.onLine) return "You're offline. AI needs a connection. Your local study data is still safe.";
+  const c = e && e.code, who = label ? `${label} ` : '';
+  if (c === 'not_granted') return 'AI access was declined. You can try again whenever you like. Your study data is unchanged.';
+  if (c === 'rate_limited') return `${who}rate or quota limit reached${e.message ? ': ' + e.message : ''}. Your study data is unchanged.`;
+  if (c === 'bad_key') return `The ${who}key wasn't accepted${e.message ? ': ' + e.message : ''}. Check it in AI settings. Your study data is unchanged.`;
+  if (c === 'bad_model') return `That ${who}model wasn't found${e.message ? ': ' + e.message : ''}. Check the model name in AI settings. Your study data is unchanged.`;
+  if (c === 'network') return hostedPage
+    ? "This preview page can't reach outside AI providers directly, because of this page's own network rules. Download the file and open it in your own browser, or use Claude (built-in) in AI settings. Your study data is unchanged."
+    : "AI is temporarily unavailable, or this page can't reach it from here. Your local study data is still safe.";
+  return `${who}AI is temporarily unavailable. Your local study data is still safe.`;
+}
+
+/* ---- service ---- */
+const aiMsg = (role, text, extra) => ({id: ++ai.seq, role, text, ...(extra || {})});
+function historyTurns() {
+  const t = ai.messages.filter(m => (m.role === 'user' || m.role === 'ai') && m.text).slice(-14).map(m => ({role: m.role === 'ai' ? 'assistant' : 'user', content: m.text}));
+  while (t.length && t[0].role !== 'user') t.shift(); return t;
+}
+/* After the AI prepares changes, apply them immediately when the user has left auto-apply on (default), rather than waiting for a manual tap per card. Undo stays available either way. */
+async function autoApplyCards(cardIds) {
+  for (const id of cardIds) {
+    const c = ai.cards.get(id); if (!c || c.status !== 'pending') continue;
+    try {
+      if (c.type === 'changes') { const rec = await applyPlan(c.plan, c.summary); c.status = 'applied'; c.changeId = rec.id; }
+      else if (c.type === 'draft') {
+        const d = c.draft, res = await cmd.createRoutine({name: d.name, startDate: d.startDate, duration: d.duration, items: d.items, makePrimary: !S.routines.length});
+        if (res.error) { c.error = res.error; continue; }
+        const rec = {id: uid(), description: `Created routine "${d.name}"`, previousState: {tasks: []}, newState: {createdRoutineId: res.id}, createdAt: Date.now(), revertedAt: null};
+        await commit({put: {aiChanges: [rec]}}); c.status = 'created'; c.changeId = rec.id; ui.viewRoutineId = res.id;
+      } else if (c.type === 'revision') {
+        const res = await acceptRevision(c.rev.taskId, c.rev.offsets);
+        if (res.error) { c.error = res.error; continue; }
+        c.status = 'accepted'; c.changeId = res.rec.id;
+      }
+    } catch (e) { c.error = (e && e.message) || 'Could not apply automatically.'; }
+  }
+}
+async function aiRun() {
+  const r = aiRoutine();
+  if (!r) { ai.messages.push(aiMsg('ai', 'Create a routine first, or tell me about your goal and I can draft one after it exists.')); render(); return; }
+  const list = availableProviderList();
+  if (!list.length) { ai.messages.push(aiMsg('err', 'AI is not set up yet. Open AI settings to add a key.', {retry: false})); render(); return; }
+  ai.busy = true; ai.ctl = new AbortController(); ai.stream = ''; ai.scroll = true; render();
+  const tried = []; let res = null, lastErr = null;
+  try {
+    for (const id of list) {
+      ai.sim = makeSim(r); ai.draft = null; ai.revisions = []; ai.summary = '';
+      try {
+        res = await aiProviders[id].run({system: buildSystem(r), turns: historyTurns(), tools: buildTools(r), signal: ai.ctl.signal, onText: t => { ai.stream = t; const el = $('[data-stream]'); if (el) el.innerHTML = md(t); }});
+        lastErr = null; break;
+      } catch (e) {
+        if (e && e.code === 'cancelled') throw e;
+        lastErr = e; lastErr.provider = aiProviders[id].label; tried.push(aiProviders[id].label); ai.stream = '';
+      }
+    }
+    if (!res) throw lastErr || {code: 'upstream_error'};
+    const cards = [], plan = buildPlan(ai.sim);
+    if (plan.has) { const c = {id: 'c' + (++ai.seq), type: 'changes', status: 'pending', plan, summary: ai.summary, expanded: false}; ai.cards.set(c.id, c); cards.push(c.id); }
+    if (ai.draft) { const c = {id: 'c' + (++ai.seq), type: 'draft', status: 'pending', draft: ai.draft, expanded: false}; ai.cards.set(c.id, c); cards.push(c.id); }
+    ai.revisions.forEach(v => { const c = {id: 'c' + (++ai.seq), type: 'revision', status: 'pending', rev: v}; ai.cards.set(c.id, c); cards.push(c.id); });
+    ai.messages.push(aiMsg('ai', (res.text || '').trim() || (cards.length ? 'Here is what I prepared.' : '…'), {cards}));
+    if (S.settings.aiAutoApply !== false && cards.length) await autoApplyCards(cards);
+  } catch (e) {
+    if (e && e.code === 'cancelled') ai.messages.push(aiMsg('err', 'Stopped. Nothing was changed.', {retry: true}));
+    else { const suffix = tried.length > 1 ? ` (tried: ${tried.join(', ')})` : ''; ai.messages.push(aiMsg('err', aiErrorText(e, e && e.provider) + suffix, {retry: true})); }
+  } finally { ai.busy = false; ai.ctl = null; ai.stream = ''; ai.scroll = true; render(); }
+}
+
+/* ---- AI views ---- */
+const md = t => { const lines = esc(t).split(/\n/); let out = '', list = false; lines.forEach(l => { const b = l.match(/^\s*[-*•]\s+(.*)$/); const f = s => s.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>'); if (b) { if (!list) { out += '<ul>'; list = true; } out += `<li>${f(b[1])}</li>`; } else { if (list) { out += '</ul>'; list = false; } if (l.trim()) out += `<p>${f(l)}</p>`; } }); return out + (list ? '</ul>' : ''); };
+function diffHTML(plan, expanded) {
+  const groups = planLines(plan), shown = expanded ? groups : groups.slice(0, 6);
+  return shown.map(g => `<p class="diff-day">Day ${g.n}${g.date ? ', ' + fmtShort(g.date) : ''}</p>` + g.lines.map(l => `<div class="ln ${l.sign === '+' ? 'plus' : l.sign === '−' ? 'minus' : 'mod'}"><b aria-hidden="true">${l.sign}</b><span><span class="sr">${l.sign === '+' ? 'Add' : l.sign === '−' ? 'Remove' : 'Change'}: </span>${esc(l.text)}</span></div>`).join('')).join('') +
+    (groups.length > 6 && !expanded ? '' : '') + plan.notes.map(n => `<div class="ln plus"><b aria-hidden="true">+</b><span>Note: ${esc(n.title)}</span></div>`).join('');
+}
+function cardHTML(c) {
+  const status = {applied: 'Applied', cancelled: 'Cancelled', undone: 'Undone', created: 'Created', failed: 'Not applied', dismissed: 'Dismissed', accepted: 'Accepted'}[c.status];
+  const tag = status ? `<span class="tag mute">${status}</span>` : '';
+  if (c.type === 'changes') {
+    const groups = planLines(c.plan);
+    return `<div class="card ai-card"><p class="ai-title">AI plan change ${tag}</p>${c.summary ? `<p style="margin-bottom:var(--s1)">${esc(c.summary)}</p>` : ''}${diffHTML(c.plan, c.expanded)}
+      ${groups.length > 6 ? `<button class="link-btn" data-a="ai-expand" data-id="${c.id}">${c.expanded ? 'Show fewer days' : `Show all ${groups.length} days`}</button>` : ''}
+      <p class="muted" style="margin-top:var(--s2)">${planSummary(c.plan)}.</p>${c.error ? `<p class="err">${esc(c.error)}</p>` : ''}
+      ${c.status === 'pending' ? `<div class="actions"><button class="btn btn-quiet" data-a="ai-cancel" data-id="${c.id}">Cancel</button><button class="btn btn-primary" data-a="ai-apply" data-id="${c.id}">Apply changes</button></div>` : ''}
+      ${c.status === 'applied' ? `<div class="actions"><button class="btn btn-quiet" data-a="ai-undo" data-id="${c.id}">Undo</button></div>` : ''}</div>`;
+  }
+  if (c.type === 'draft') {
+    const d = c.draft, days = [...d.items.keys()].sort((a, b) => a - b), shown = c.expanded ? days : days.slice(0, 5);
+    return `<div class="card ai-card"><p class="ai-title">New routine draft ${tag}</p><p style="font-weight:600">${d.duration} days, ${d.count} tasks</p>
+      ${shown.map(n => `<p class="diff-day">Day ${n}</p>` + d.items.get(n).map(it => `<div class="ln plus"><b aria-hidden="true">+</b><span>${esc(it.subject)}: ${esc(it.title)}</span></div>`).join('')).join('')}
+      ${days.length > 5 ? `<button class="link-btn" data-a="ai-expand" data-id="${c.id}">${c.expanded ? 'Show fewer days' : `Show all ${days.length} days`}</button>` : ''}
+      ${c.error ? `<p class="err">${esc(c.error)}</p>` : ''}
+      ${c.status === 'pending' ? `<form data-form="ai-draft" data-id="${c.id}" novalidate>${fld('Name', `<input name="name" maxlength="60" value="${esc(d.name)}" autocomplete="off">`)}${fld('Start date', `<input name="startDate" type="date" value="${d.startDate}">`)}
+        <label class="check"><input type="checkbox" name="primary" ${S.routines.length ? '' : 'checked'}> Make this my primary routine</label><p class="err" role="alert" hidden></p>
+        <p class="hint">Want something different? Tell me what to change below.</p><div class="actions"><button type="button" class="btn btn-quiet" data-a="ai-cancel" data-id="${c.id}">Discard</button><button type="submit" class="btn btn-primary">Create routine</button></div></form>` : ''}
+      ${c.status === 'created' ? `<div class="actions"><button class="btn btn-quiet" data-a="ai-undo" data-id="${c.id}">Undo</button></div>` : ''}</div>`;
+  }
+  const t = findTask(c.rev.taskId);
+  return `<div class="card ai-card"><p class="ai-title">Revision suggestion ${tag}</p><p style="font-weight:600">${t ? esc(t.title) : 'Task removed'}</p>
+    ${c.status === 'pending' && t ? `<form data-form="ai-rev" data-id="${c.id}" novalidate>${fld('Revise after (days)', `<input name="offsets" value="${c.rev.offsets.join(', ')}" inputmode="numeric" autocomplete="off">`, 'Each number is days after this task’s day.')}<p class="err" role="alert" hidden></p>
+      <div class="actions"><button type="button" class="btn btn-quiet" data-a="ai-cancel" data-id="${c.id}">Dismiss</button><button type="submit" class="btn btn-primary">Add to plan</button></div></form>` : `<p class="muted">Day +${c.rev.offsets.join(', +')}</p>`}
+    ${c.error ? `<p class="err">${esc(c.error)}</p>` : ''}
+    ${c.status === 'accepted' ? `<div class="actions"><button class="btn btn-quiet" data-a="ai-undo" data-id="${c.id}">Undo</button></div>` : ''}</div>`;
+}
+function ctxChip() {
+  const c = ui.aiCtx; if (!c) return '';
+  const lbl = c.type === 'day' ? (() => { const d = index().dayById.get(c.id); return d ? `Day ${d.dayNumber}` : ''; })() : (() => { const t = findTask(c.id); return t ? t.title : ''; })();
+  return lbl ? `<span class="ctx">${esc(lbl)}<button type="button" data-a="ai-ctx-clear" aria-label="Remove context">${icon('stop', 12)}</button></span>` : '';
+}
+function viewAI() {
+  const name = aiProviderName();
+  const mode = S.settings.aiMode || 'chat';
+  const providerLabel = name ? (aiProviders[name] ? aiProviders[name].label : name) : 'No provider selected';
+  const msgs = ai.messages.map(m => {
+    if (m.role === 'user') return `<div class="msg user">${esc(m.text)}</div>`;
+    if (m.role === 'err') return `<div class="msg err" role="status">${esc(m.text)}${m.retry ? '<br><button class="btn btn-quiet" data-a="ai-retry">Try again</button>' : ''}</div>`;
+    return `<div class="msg ai">${md(m.text)}${(m.cards || []).map(id => cardHTML(ai.cards.get(id))).join('')}</div>`;
+  }).join('');
+  let body = msgs;
+  if (ai.busy) body += `<div class="msg ai"><div data-stream>${ai.stream ? md(ai.stream) : '<p class="thinking">Thinking…</p>'}</div></div>`;
+  if (!ai.messages.length && !ai.busy) body = `<div class="ai-hero"><div class="ai-orb">${icon('ai',22)}</div><h2 style="margin-top:12px">What are we building today?</h2><p>Your planning copilot can reason over your routines, notes, progress and uploaded files.</p><div class="ai-quick">${['আজকের কাজগুলো সাজাও','Make a balanced 7-day plan','Summarize my notes'].map(t => `<button data-a="ai-example" data-t="${esc(t)}">${esc(t)}</button>`).join('')}</div></div>`;
+  const attachmentHtml = (ui.aiFiles || []).map((f,i) => `<span class="attachment-chip">${icon('copy',13)} ${esc(f.name)} <button type="button" data-a="ai-file-remove" data-i="${i}" aria-label="Remove file">×</button></span>`).join('');
+  return `<div class="ai-workspace"><header class="ai-topbar"><div class="ai-brand"><div class="ai-orb">${icon('ai',22)}</div><div><h1 class="title">AI workspace</h1><div class="ai-status"><i></i>${mode === 'agent' ? 'Agent mode' : providerLabel}</div></div></div><div class="ai-top-actions"><button class="icon-btn" data-a="ai-history" aria-label="AI history">${icon('history')}</button><button class="icon-btn" data-a="ai-settings" aria-label="AI settings">${icon('gear')}</button></div></header>
+    <div class="ai-shell"><aside class="ai-drawer"><button class="ai-new" data-a="ai-new">＋ New chat</button><nav class="ai-drawer-nav"><button class="active" data-a="ai-new">${icon('ai',18)} Chat</button><button data-a="ai-settings">${icon('gear',18)} Models &amp; providers</button><button data-a="ai-memory">${icon('edit',18)} Brain &amp; memory</button><button data-a="ai-history">${icon('history',18)} Change history</button></nav><div class="ai-capabilities"><p>Enabled tools</p><span>Plan reader</span><span>Search</span><span>Task editor</span><span>Notes</span><span>File reader</span></div></aside><main class="ai-main"><div class="msgs" id="msgs">${body}</div><div class="composer">${ctxChip()}${attachmentHtml ? `<div class="attachment-strip">${attachmentHtml}</div>` : ''}<form data-form="ai-send"><div style="display:flex;flex-direction:column;flex:1;min-width:0"><textarea name="q" rows="1" aria-label="Message" placeholder="Message your copilot…">${esc(ui.aiDraft || '')}</textarea><div class="composer-tools"><button type="button" class="composer-tool" data-a="ai-file" aria-label="Attach files">${icon('plus',18)}</button><span class="muted">${mode === 'agent' ? 'Agent can browse and act' : 'Ask anything about your plan'}</span></div></div>${ai.busy ? `<button type="button" class="btn btn-quiet" data-a="ai-stop" aria-label="Stop">${icon('stop',20)}</button>` : `<button type="submit" class="btn btn-primary" aria-label="Send">${icon('send',20)}</button>`}</form><input id="ai-file-input" type="file" multiple accept="image/*,.pdf,.txt,.md,.csv,.json" hidden></div></main></div></div>`;
+}
+
+function aiSettingsPanel(id, label, keyField, modelField, defaultModel, models, note, cur) {
+  const active = !!(S.settings[keyField] || S.settings[modelField]);
+  return `<section class="ai-provider-card ${cur === id ? 'active' : ''}"><div class="ai-provider-head"><i class="ai-provider-dot ${active ? 'on' : ''}"></i><b>${label}</b><button type="button" class="chip-btn ${cur === id ? 'primary' : ''}" data-a="ai-prov" data-v="${id}">${cur === id ? 'Selected' : 'Use this'}</button></div><div style="margin-top:12px">${fld('API key', `<input name="${keyField}" type="password" autocomplete="off" value="${esc(S.settings[keyField] || '')}" placeholder="Paste key">`, 'Stored locally in this browser.')}<div class="ai-model-line">${fld('Model name', `<input name="${modelField}" value="${esc(S.settings[modelField] || defaultModel)}" autocomplete="off" placeholder="Any supported model">`, '')}</div><div class="chips" role="group" aria-label="Suggested models">${models.slice(0,5).map(m => `<button type="button" class="chip" data-a="ai-model-pick" data-target="${modelField}" data-v="${m}">${esc(m)}</button>`).join('')}</div><button type="button" class="btn btn-quiet" data-a="ai-test" data-provider="${id}" style="margin-top:9px;height:36px;font-size:12px">Test connection</button><p class="hint" id="ai-test-out-${id}" style="min-height:18px"></p></div></section>`;
+}
+function openAISettings() {
+  const cur = S.settings.aiProvider || (aiProviderName() || 'gemini');
+  const tabs = [['gemini','Gemini'],['groq','Groq'],['openrouter','OpenRouter'],['mistral','Mistral']];
+  openSheet(`<h2 id="sh-title" class="sh-title">AI settings</h2><form data-form="ai-settings" class="ai-settings-sheet" novalidate><div class="ai-settings-intro"><b>Make AI work like yours</b><p class="hint">Add as many providers and model names as you want. The selected model is used first; if it fails, configured providers are tried automatically.</p></div><div class="ai-mode-tabs"><label><input type="radio" name="aiMode" value="chat" ${S.settings.aiMode !== 'agent' ? 'checked' : ''}> <b>Copilot mode</b><small class="muted"> Your connected models + app tools</small></label><label><input type="radio" name="aiMode" value="agent" ${S.settings.aiMode === 'agent' ? 'checked' : ''}> <b>Agent mode</b><small class="muted"> External browser/cloud agent</small></label></div><div class="ai-setting-section"><h3>Model priority</h3><p>Select the model you want to use. The app keeps fallback providers ready.</p><input type="hidden" name="provider" value="${cur}"><div class="ai-settings-grid">${aiSettingsPanel('gemini','Gemini','geminiKey','geminiModel','gemini-3.8-flash',['gemini-3.8-flash','gemini-3.6-flash','gemini-3.1-pro-preview','gemini-2.5-pro','gemini-2.5-flash'],'',cur)}${aiSettingsPanel('groq','Groq',PROVIDER_DEFS.groq.keyField,PROVIDER_DEFS.groq.modelField,PROVIDER_DEFS.groq.defaultModel,PROVIDER_DEFS.groq.models,'',cur)}${aiSettingsPanel('openrouter','OpenRouter',PROVIDER_DEFS.openrouter.keyField,PROVIDER_DEFS.openrouter.modelField,PROVIDER_DEFS.openrouter.defaultModel,PROVIDER_DEFS.openrouter.models,'',cur)}${aiSettingsPanel('mistral','Mistral',PROVIDER_DEFS.mistral.keyField,PROVIDER_DEFS.mistral.modelField,PROVIDER_DEFS.mistral.defaultModel,PROVIDER_DEFS.mistral.models,'',cur)}</div></div><div class="ai-setting-section"><h3>Agent connection</h3><p>Paste your Browser Use Cloud Agent API key. Agent mode is kept separate from chat-model tools.</p>${fld('Agent API key', `<input name="agentKey" type="password" value="${esc(S.settings.agentKey || '')}" placeholder="Paste agent key">`, 'Used only when Agent mode is selected.')} ${fld('Agent endpoint (optional)', `<input name="agentUrl" value="${esc(S.settings.agentUrl || '')}" placeholder="https://…/run">`, 'Leave blank to configure later.')}</div><div class="ai-setting-section"><h3>Brain, memory &amp; tools</h3><div class="ai-toggle-row"><span>Remember preferences and conversation context</span><input type="checkbox" name="memory" ${S.settings.aiMemory === false ? '' : 'checked'}></div><div class="ai-toggle-row"><span>Read uploaded images, PDF and text files</span><input type="checkbox" name="fileTools" ${S.settings.aiFileTools === false ? '' : 'checked'}></div><div class="ai-toggle-row"><span>Auto-apply routine changes</span><input type="checkbox" name="autoApply" ${S.settings.aiAutoApply === false ? '' : 'checked'}></div></div><div class="actions"><button type="button" class="btn btn-quiet" data-a="sheet-close">Cancel</button><button type="submit" class="btn btn-primary">Save AI setup</button></div></form>`);
+}
+function openAIMemory() { openSheet(`<h2 id="sh-title" class="sh-title">Brain &amp; memory</h2><p class="sh-sub">Give your copilot durable context without repeating yourself.</p>${fld('About me', `<textarea name="memoryText" rows="5" placeholder="Your goals, preferred study style, constraints…">${esc(S.settings.aiMemoryText || '')}</textarea>`, 'This stays in local browser storage and is included as context for future requests.')}<div class="actions"><button type="button" class="btn btn-quiet" data-a="sheet-close">Close</button><button type="button" class="btn btn-primary" data-a="ai-memory-save">Save memory</button></div>`); }
+
+function openAIHistory() {
+  const list = S.aiChanges.slice().sort((a, b) => b.createdAt - a.createdAt);
+  openSheet(`<h2 id="sh-title" class="sh-title">AI changes</h2>${list.length ? list.map(r => `<div class="row" style="cursor:default"><span class="row-main"><span class="row-title">${esc(r.description)}</span><span class="row-sub">${fmtWhen(r.createdAt)}${r.revertedAt ? ', undone' : ''}</span></span>${r.revertedAt ? '' : `<button class="btn btn-quiet" style="height:38px" data-a="ai-undo-rec" data-id="${r.id}">Undo</button>`}</div>`).join('') : '<p class="sh-sub">Nothing yet. Changes you approve from the AI tab appear here so you can undo them.</p>'}
+    <div class="actions"><button type="button" class="btn btn-quiet" data-a="sheet-close">Close</button></div>`);
+}
+
+/* ---- handlers ---- */
+Object.assign(H, {
+  search: () => openSearch(),
+  'sr-go': el => {
+    const {type, id} = el.dataset; if (type === 'note') { closeSheet(true); openNotes(); openNote(id); return; } if (type === 'routine') { closeSheet(true); openRoutineDetail(id); return; }
+    const ix = index(), d = type === 'day' ? ix.dayById.get(id) : ix.dayById.get((findTask(id) || {}).dayId); if (!d) return;
+    const r = S.routines.find(x => x.id === d.routineId); ui.viewRoutineId = r.id; ui.tab = 'routine'; window.scrollTo(0, 0); jumpTo(r, d.dayNumber);
+  },
+  'notes-open': () => openNotes(), 'page-close': () => closePage(),
+  'note-new': () => openNote(null), 'note-open': el => openNote(el.dataset.id),
+  'note-back': async () => { await saveNote(); noteDraft = null; closePage(); openNotes(); },
+  'note-del': () => { const n = noteDraft; if (!n) return; openConfirm({title: 'Delete this note?', text: "This can't be undone.", label: 'Delete note', danger: true, onConfirm: async () => { clearTimeout(noteTimer); noteDraft = null; await commit({del: {notes: [n.id]}}); closePage(); openNotes(); toast('Note deleted.'); }}); },
+  focus: () => openFocus(),
+  'focus-mode': el => { const f = el.closest('form'); ui.focusMode = el.dataset.v; f.elements.mode.value = el.dataset.v; f.querySelectorAll('[data-a="focus-mode"]').forEach(b => b.setAttribute('aria-pressed', String(b === el))); f.querySelectorAll('[data-panel]').forEach(p => { p.hidden = p.dataset.panel !== el.dataset.v; }); },
+  'focus-preset': el => { const f = el.closest('form'); ui.focusMin = +el.dataset.m; f.elements.min.value = el.dataset.m; f.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', String(c === el))); },
+  'focus-toggle': () => { const a = activeSess(); if (!a) return; if (a.runningSince) saveActive({...a, elapsedBefore: elapsedMs(a), runningSince: null}); else saveActive({...a, runningSince: Date.now()}); openFocus(); render(); },
+  'focus-finish': () => finishSession(),
+  'focus-discard': () => openConfirm({title: 'Discard this session?', text: "The time won't be saved.", label: 'Discard', danger: true, onConfirm: () => { saveActive(null); render(); toast('Session discarded.'); }}),
+  'task-focus': el => { closeSheet(true); openFocus({taskId: el.dataset.id}); },
+  'task-ai': el => { closeSheet(true); ui.aiCtx = {type: 'task', id: el.dataset.id}; setTab('ai'); },
+  'ask-ai-day': el => { ui.aiCtx = {type: 'day', id: el.dataset.id}; setTab('ai'); },
+  'go-ai': () => setTab('ai'),
+  templates: () => openTemplates(), 'tpl-open': el => openTemplate(el.dataset.id),
+  'tpl-del': el => { const t = S.templates.find(x => x.id === el.dataset.id); if (!t) return; openConfirm({title: 'Delete this template?', text: `“${t.name}” will be removed. Routines created from it are not affected.`, label: 'Delete template', danger: true, onConfirm: async () => { await commit({del: {templates: [t.id]}}); toast('Template deleted.'); }}); },
+  'r-tpl': async el => { const r = S.routines.find(x => x.id === el.dataset.id); if (!r) return; closeSheet(); await commit({put: {templates: [templateFromRoutine(r)]}}); toast('Saved as a template.'); },
+  import: () => openImport(),
+  'import-apply': async el => {
+    const f = el.closest('form'); if (!importState) return; const {put, stats} = planImport(importState.clean, f.elements.strategy.value);
+    const n = Object.values(put).reduce((s, a) => s + a.length, 0); closeSheet();
+    if (!n) { toast('Nothing to import. Everything in the backup is already here.'); return; }
+    await commit({put}); toast(`Imported ${stats.added} new and updated ${stats.overwritten} records.`); importState = null;
+  },
+  'download-export': async () => { try { await dl.save({filename: `inflowmap-backup-${todayISO()}.json`, data: JSON.stringify(buildBackup(), null, 2)}); } catch (e) { if (!e || e.code !== 'declined') toast('Download was not possible. Use Copy instead.'); } },
+  'ai-settings': () => openAISettings(), 'ai-history': () => openAIHistory(),
+  'ai-memory': () => openAIMemory(),
+  'ai-memory-save': el => { const p = el.closest('.sheet'); const ta = p && p.querySelector('[name=memoryText]'); setSetting('aiMemoryText', ta ? ta.value.slice(0,6000) : ''); closeSheet(); toast('Memory saved.'); },
+  'ai-new': () => { ai.messages = []; ai.cards.clear(); ui.aiCtx = null; ui.aiDraft = ''; ui.aiFiles = []; render(); },
+  'ai-file': () => { const f = $('#ai-file-input'); if (f) f.click(); },
+  'ai-file-remove': el => { ui.aiFiles = (ui.aiFiles || []).filter((_,i) => i !== +el.dataset.i); render(); },
+  'ai-model-pick': el => { const f = el.closest('form'); const target = el.dataset.target || 'geminiModel'; if (f.elements[target]) f.elements[target].value = el.dataset.v; },
+  'ai-test': async el => {
+    const f = el.closest('form'), id = el.dataset.provider || 'gemini', out = $('#ai-test-out-' + id, f);
+    if (id === 'gemini') {
+      const key = f.elements.geminiKey.value.trim(), model = clean(f.elements.geminiModel.value, 60) || 'gemini-3.8-flash';
+      if (!key) { out.textContent = 'Paste a key first.'; out.style.color = 'var(--danger)'; return; }
+      el.disabled = true; out.textContent = 'Testing…'; out.style.color = 'var(--text-3)';
+      const r = await geminiTest(key, model);
+      out.textContent = r.ok ? `${model} is working.` : r.message; out.style.color = r.ok ? 'var(--success)' : 'var(--danger)'; el.disabled = false; return;
+    }
+    const d = PROVIDER_DEFS[id]; if (!d) return;
+    const key = f.elements[d.keyField].value.trim(), model = clean(f.elements[d.modelField].value, 80) || d.defaultModel;
+    if (!key) { out.textContent = 'Paste a key first.'; out.style.color = 'var(--danger)'; return; }
+    el.disabled = true; out.textContent = 'Testing…'; out.style.color = 'var(--text-3)';
+    const r = await openAICompatTest(d.url, key, model, d.headers ? d.headers() : null);
+    out.textContent = r.ok ? `${model} is working.` : r.message; out.style.color = r.ok ? 'var(--success)' : 'var(--danger)'; el.disabled = false;
+  },
+  'ai-prov': el => { const f = el.closest('form'); f.elements.provider.value = el.dataset.v; f.querySelectorAll('[data-a="ai-prov"]').forEach(b => b.setAttribute('aria-pressed', String(b === el))); f.querySelectorAll('[data-panel]').forEach(p => { p.hidden = p.dataset.panel !== el.dataset.v; }); },
+  'ai-example': el => { ui.aiDraft = el.dataset.t; render(); const ta = $('.composer textarea'); if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); } },
+  'ai-ctx-clear': () => { ui.aiCtx = null; render(); },
+  'ai-stop': () => { if (ai.ctl) ai.ctl.abort(); },
+  'ai-retry': () => { if (ai.busy) return; ai.messages = ai.messages.filter(m => m.role !== 'err'); aiRun(); },
+  'ai-expand': el => { const c = ai.cards.get(el.dataset.id); if (c) { c.expanded = !c.expanded; render(); } },
+  'ai-cancel': el => { const c = ai.cards.get(el.dataset.id); if (c) { c.status = c.type === 'revision' ? 'dismissed' : 'cancelled'; render(); } },
+  'ai-apply': async el => {
+    const c = ai.cards.get(el.dataset.id); if (!c || c.status !== 'pending') return;
+    try { const rec = await applyPlan(c.plan, c.summary); c.status = 'applied'; c.changeId = rec.id; toast('Changes applied.', {label: 'Undo', ms: 6000, onAction: async () => { await undoAIChange(rec.id); c.status = 'undone'; render(); toast('Changes undone.'); }}); }
+    catch (e) { c.status = 'failed'; c.error = (e && e.message) || 'Those changes could not be applied.'; }
+    render();
+  },
+  'ai-undo': async el => { const c = ai.cards.get(el.dataset.id); if (!c || !c.changeId) return; await undoAIChange(c.changeId); c.status = 'undone'; render(); toast('Changes undone.'); },
+  'ai-undo-rec': async el => { const id = el.dataset.id; closeSheet(); await undoAIChange(id); ai.cards.forEach(c => { if (c.changeId === id) c.status = 'undone'; }); render(); toast('Changes undone.'); }
+});
+Object.assign(FORMS, {
+  async 'focus-start'(f) {
+    const mode = f.elements.mode.value; let minutes = 0;
+    if (mode === 'pomodoro') { minutes = toInt(f.elements.min.value); if (!(minutes >= 1 && minutes <= 600)) return showErr(f, 'Enter minutes from 1 to 600.'); }
+    saveActive({id: uid(), taskId: f.elements.task.value || null, mode, targetSec: minutes * 60, startedAt: Date.now(), elapsedBefore: 0, runningSince: Date.now()});
+    fx.notified = null; openFocus(); render();
+  },
+  async 'tpl-use'(f) {
+    const t = S.templates.find(x => x.id === f.dataset.id); if (!t) return; const items = new Map();
+    t.data.days.forEach(d => items.set(d.dayNumber, d.items.map(i => ({subject: i.subject, title: i.title, minutes: i.minutes, note: i.note}))));
+    const res = await cmd.createRoutine({name: f.elements.name.value, startDate: f.elements.startDate.value, duration: t.data.duration, items, makePrimary: f.elements.primary ? f.elements.primary.checked : true});
+    if (res.error) return showErr(f, res.error); closeSheet(); ui.viewRoutineId = res.id; setTab('routine'); toast('Routine created from template.');
+  },
+  'import-check'(f) {
+    const txt = f.elements.text.value.trim(); if (!txt) return showErr(f, 'Choose a file or paste the backup text.');
+    const v = validateBackup(txt); if (v.error) { $('#imp-prev', f).innerHTML = ''; return showErr(f, v.error); }
+    importState = v; const e = $('.err', f); e.hidden = true; $('#imp-prev', f).innerHTML = importPreviewHTML(v.clean, v.dropped);
+  },
+  'ai-send'(f) {
+    const text = f.elements.q.value.trim(); if (!text || ai.busy) return;
+    ui.aiDraft = ''; ai.messages.push(aiMsg('user', text + ((ui.aiFiles || []).length ? `\n\n[Attached: ${ui.aiFiles.map(x => x.name).join(', ')}]` : ''))); aiRun();
+  },
+  'ai-settings'(f) {
+    setSetting('aiProvider', f.elements.provider.value);
+    setSetting('geminiKey', f.elements.geminiKey.value.trim()); setSetting('geminiModel', clean(f.elements.geminiModel.value, 60) || 'gemini-3.8-flash');
+    Object.entries(PROVIDER_DEFS).forEach(([id, d]) => { setSetting(d.keyField, f.elements[d.keyField].value.trim()); setSetting(d.modelField, clean(f.elements[d.modelField].value, 80) || d.defaultModel); });
+    setSetting('aiAutoApply', !!(f.elements.autoApply && f.elements.autoApply.checked));
+    setSetting('aiMode', f.elements.aiMode ? f.elements.aiMode.value : 'chat'); setSetting('agentKey', f.elements.agentKey ? f.elements.agentKey.value.trim() : ''); setSetting('agentUrl', f.elements.agentUrl ? f.elements.agentUrl.value.trim() : ''); setSetting('aiMemory', !!(f.elements.memory && f.elements.memory.checked)); setSetting('aiFileTools', !!(f.elements.fileTools && f.elements.fileTools.checked));
+    closeSheet(); render(); toast('AI settings saved.');
+  },
+  async 'ai-draft'(f) {
+    const c = ai.cards.get(f.dataset.id); if (!c) return; const d = c.draft;
+    const res = await cmd.createRoutine({name: f.elements.name.value, startDate: f.elements.startDate.value, duration: d.duration, items: d.items, makePrimary: f.elements.primary.checked});
+    if (res.error) return showErr(f, res.error);
+    const rec = {id: uid(), description: `Created routine “${clean(f.elements.name.value, 60)}”`, previousState: {tasks: []}, newState: {createdRoutineId: res.id}, createdAt: Date.now(), revertedAt: null};
+    await commit({put: {aiChanges: [rec]}}); c.status = 'created'; c.changeId = rec.id; ui.viewRoutineId = res.id; render(); toast('Routine created.');
+  },
+  async 'ai-rev'(f) {
+    const c = ai.cards.get(f.dataset.id), t = c && findTask(c.rev.taskId); if (!t) return showErr(f, 'That task no longer exists.');
+    const offs = [...new Set(f.elements.offsets.value.split(/[,\s،]+/).filter(Boolean).map(toInt))];
+    if (!offs.length || offs.some(o => !(o >= 1 && o <= 365)) || offs.length > 6) return showErr(f, 'Enter up to 6 whole numbers between 1 and 365.');
+    const day = index().dayById.get(t.dayId), r = S.routines.find(x => x.id === day.routineId), sim = makeSim(r); let skipped = 0;
+    offs.sort((a, b) => a - b).forEach(o => { const n = day.dayNumber + o; if (n > r.duration) skipped++; else EXEC.createTask(sim, {dayNumber: n, subject: subjName(t), title: 'Revision: ' + t.title}); });
+    const plan = buildPlan(sim); if (!plan.has) return showErr(f, 'Those days are beyond the end of this routine.');
+    try { const rec = await applyPlan(plan, `Revision for “${t.title}”`); c.status = 'accepted'; c.changeId = rec.id; render(); toast(skipped ? `Added revision. ${skipped} date(s) fell past the routine's end.` : 'Revision added to your plan.'); }
+    catch (e) { showErr(f, e.message); }
+  }
+});
+document.addEventListener('change', e => { if (e.target && e.target.id === 'ai-file-input') { ui.aiFiles = Array.from(e.target.files || []).slice(0,8).map(f => ({name:f.name, type:f.type, size:f.size})); render(); } });
+document.addEventListener('input', e => {
+  if (e.target.matches('.composer textarea')) { ui.aiDraft = e.target.value; e.target.style.height = 'auto'; e.target.style.height = Math.min(140, e.target.scrollHeight) + 'px'; }
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey && e.target.matches('.composer textarea') && matchMedia('(pointer:fine)').matches) { e.preventDefault(); const f = e.target.closest('form'); FORMS['ai-send'](f); }
+  if (e.key === 'Escape' && !sheetEl && pageEl) { if ($('#ed', pageEl)) H['note-back'](); else closePage(); }
+});
+
+/* wrap clearAll so notes/sessions/templates/AI history and the timer go too */
+const _clearAll = cmd.clearAll;
+cmd.clearAll = async function () {
+  await commit({del: {notes: S.notes.map(x => x.id), sessions: S.sessions.map(x => x.id), templates: S.templates.map(x => x.id), aiChanges: S.aiChanges.map(x => x.id)}});
+  saveActive(null); ai.messages = []; ai.cards.clear(); await _clearAll.call(cmd);
+};
+
+/* keep the AI view scrolled to the newest message after a render */
+const _afterRender = afterRender;
+afterRender = function () { _afterRender(); if (ui.tab === 'ai' && ai.scroll) { ai.scroll = false; requestAnimationFrame(() => window.scrollTo({top: document.body.scrollHeight})); } };
+
+/* capabilities offered by the claude.ai viewer (absent elsewhere) */
+(function detectCaps() {
+  if (!window.claude || typeof window.claude.use !== 'function') return;
+  window.claude.use('sample').then(s => { if (s) { ai.sample = s; if (ui.tab === 'ai') render(); } }).catch(() => {});
+  window.claude.use('downloads').then(d => { if (d) dl = d; }).catch(() => {});
+})();
+
+window.__inflowmap = {S, ui, cmd, ai, aiProviders, EXEC, parseBulk, validateBackup, planImport, searchAll, sanitizeHTML, index, todayInfo, statsFor, streakFor, db};
+boot();
+</script>
+<script>
+/* PWA install support. Wrapped so a browser without service workers (or a
+   file:// open) simply skips it and the app runs exactly as before. */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('sw.js').catch(function () {});
+  });
+}
+</script>
+</body>
+</html>
