@@ -1755,6 +1755,10 @@ aiProviders.claude = {label: 'Claude (built-in)', available: () => !!ai.sample, 
 /* Order to try providers in. The user's chosen "preferred" provider (if configured) always goes first; the rest act as automatic fallbacks. */
 const PROVIDER_ORDER = ['gemini', 'groq', 'openrouter', 'mistral', 'claude'];
 function availableProviderList() {
+  /* Agent mode goes to Browser Use whenever an endpoint is available, and to
+     it alone: mixing in a chat provider would silently answer without
+     browsing, which is the one thing this mode promises. */
+  if ((S.settings.aiMode || 'chat') === 'agent' && agentEndpoint()) return ['browseruse'];
   const ids = PROVIDER_ORDER.filter(id => aiProviders[id] && aiProviders[id].available());
   const pref = S.settings.aiProvider;
   return (pref && ids.includes(pref)) ? [pref, ...ids.filter(x => x !== pref)] : ids;
@@ -1829,6 +1833,53 @@ async function aiRun() {
   } finally { ai.busy = false; ai.ctl = null; ai.stream = ''; ai.scroll = true; render(); }
 }
 
+/* ---- Browser Use Cloud: Agent mode ----
+   The app cannot call Browser Use directly: its API sends no
+   Access-Control-Allow-Origin, so the browser blocks the request before it
+   leaves. This posts to the companion server instead, which holds the key --
+   so the key never sits on the phone.
+   Agent mode browses and answers; it never proposes plan changes, because a
+   browsing agent cannot be trusted to edit the routine. */
+function deviceId() {
+  let d = S.settings.deviceId;
+  if (!d) { d = 'd' + Math.random().toString(36).slice(2) + Date.now().toString(36); setSetting('deviceId', d); }
+  return d;
+}
+/* Same-origin when the companion server serves this page (the normal case --
+   it serves the app AND the API). The sandbox host is deliberately NOT
+   hardcoded: it carries a per-environment token and changes whenever the
+   sandbox is recreated, so a literal here would work today and break silently
+   later. A manual endpoint is used only on a static host such as GitHub Pages,
+   which cannot run the server at all. */
+function agentEndpoint() {
+  const manual = (S.settings.agentUrl || '').trim();
+  if (manual) return manual.replace(/\/+$/, '');
+  const h = location.hostname;
+  if (location.protocol.startsWith('http') && h && !/\.github\.io$/.test(h)) return location.origin;
+  return '';
+}
+async function browseruseRun({system, turns, signal, onText}) {
+  const base = agentEndpoint();
+  if (!base) throw {code: 'bad_key', message: 'Agent endpoint is not set.'};
+  const last = [...turns].reverse().find(t => t.role === 'user');
+  const question = (last && last.content) || '';
+  let res;
+  try {
+    res = await fetch(base + '/api/agent', {
+      method: 'POST', signal,
+      headers: {'content-type': 'application/json', 'X-Device-Id': deviceId()},
+      body: JSON.stringify({question, context: system})
+    });
+  } catch (e) { if (e && e.name === 'AbortError') throw {code: 'cancelled'}; throw {code: 'network'}; }
+  let data = {};
+  try { data = await res.json(); } catch (e) {}
+  if (!res.ok) throw {code: res.status === 429 ? 'rate_limited' : 'network', message: (data && data.error) || ''};
+  const text = String((data && data.answer) || '').trim();
+  if (!text) throw {code: 'upstream_error'};
+  if (onText) onText(text);
+  return {text};
+}
+aiProviders.browseruse = {label: 'Browser Use Cloud', available: () => !!agentEndpoint(), run: browseruseRun};
 /* ---- AI views ---- */
 const md = t => { const lines = esc(t).split(/\n/); let out = '', list = false; lines.forEach(l => { const b = l.match(/^\s*[-*•]\s+(.*)$/); const f = s => s.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>'); if (b) { if (!list) { out += '<ul>'; list = true; } out += `<li>${f(b[1])}</li>`; } else { if (list) { out += '</ul>'; list = false; } if (l.trim()) out += `<p>${f(l)}</p>`; } }); return out + (list ? '</ul>' : ''); };
 function diffHTML(plan, expanded) {
