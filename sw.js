@@ -19,6 +19,8 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   const req = e.request;
   if (req.method !== 'GET') return;
+  // Never cache API traffic -- a stale agent or health reply is worse than none.
+  if (new URL(req.url).pathname.startsWith('/api/')) return;
   // Navigations go network-first so a new deploy is picked up, with the cached
   // shell as the offline fallback.
   if (req.mode === 'navigate') {
